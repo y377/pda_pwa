@@ -101,6 +101,9 @@
       });
     }
 
+    // 在全局作用域定义 partsData
+    let partsData = {};
+
     // 加载配件数据
     async function loadPartsData() {
       try {
@@ -164,7 +167,7 @@
 
     // 初始化表单
     document.addEventListener('DOMContentLoaded', async () => {
-      const partsData = await loadPartsData();
+      partsData = await loadPartsData(); // 赋值给全局变量
       console.log('初始化配件数据:', partsData);
       
       // 初始化类型选择
