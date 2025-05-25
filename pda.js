@@ -50,7 +50,6 @@ function showToast(msg, type = "primary") {
 }
 
 function updateBrandOptions() {
-  // 彻底防止 brandMap 报错
   if (!window.partsData || !window.partsData.brandMap) return;
   const type = typeSelect.value;
   const brandMap = window.partsData.brandMap;
@@ -64,18 +63,6 @@ function updateBrandOptions() {
   newBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
   oldBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
   section.classList.remove("d-none");
-  if (type === "硬盘") {
-    const newList = window.partsData.diskPnList.filter((item) => item.brand === newBrand.value);
-    const oldList = window.partsData.diskPnList.filter((item) => item.brand === oldBrand.value);
-    const newPnSelect = document.getElementById("newPNSelect");
-    const oldPnSelect = document.getElementById("oldPNSelect");
-    if (newPnSelect) {
-      newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + newList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-    }
-    if (oldPnSelect) {
-      oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + oldList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-    }
-  }
   updatePnOptions(type, newBrand.value, newPnOptions);
   updatePnOptions(type, oldBrand.value, oldPnOptions);
 }
@@ -244,21 +231,20 @@ function switchPnInput(type) {
       newPnSelect = document.createElement("select");
       newPnSelect.id = "newPNSelect";
       newPnSelect.className = newPN.className;
-      const brand = newBrand.value;
-      if (isDisk) {
-        const list = window.partsData.diskPnList.filter((item) => item.brand === brand);
-        newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-      } else {
-        const list = window.partsData.cpuPnList.filter((item) => item.brand === brand);
-        newPnSelect.innerHTML = `<option value="">请选择CPU型号</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}</option>`).join("");
-      }
       newPnSelect.addEventListener("change", update);
-      newPN.style.display = "none";
       newPnParent.appendChild(newPnSelect);
     }
-    newPN.style.display = "none";
+    // 填充选项
+    const brand = newBrand.value;
+    if (isDisk) {
+      const list = window.partsData.diskPnList.filter((item) => item.brand === brand);
+      newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
+    } else {
+      const list = window.partsData.cpuPnList.filter((item) => item.brand === brand);
+      newPnSelect.innerHTML = `<option value="">请选择CPU型号</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}</option>`).join("");
+    }
     newPnSelect.style.display = "";
-    bindPNSelectUpdate();
+    newPN.style.display = "none";
   } else {
     if (newPnSelect) newPnSelect.style.display = "none";
     newPN.style.display = "";
@@ -271,21 +257,20 @@ function switchPnInput(type) {
       oldPnSelect = document.createElement("select");
       oldPnSelect.id = "oldPNSelect";
       oldPnSelect.className = oldPN.className;
-      const brand = oldBrand.value;
-      if (isDisk) {
-        const list = window.partsData.diskPnList.filter((item) => item.brand === brand);
-        oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-      } else {
-        const list = window.partsData.cpuPnList.filter((item) => item.brand === brand);
-        oldPnSelect.innerHTML = `<option value="">请选择CPU型号</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}</option>`).join("");
-      }
       oldPnSelect.addEventListener("change", update);
-      oldPN.style.display = "none";
       oldPnParent.appendChild(oldPnSelect);
     }
-    oldPN.style.display = "none";
+    // 填充选项
+    const brand = oldBrand.value;
+    if (isDisk) {
+      const list = window.partsData.diskPnList.filter((item) => item.brand === brand);
+      oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
+    } else {
+      const list = window.partsData.cpuPnList.filter((item) => item.brand === brand);
+      oldPnSelect.innerHTML = `<option value="">请选择CPU型号</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}</option>`).join("");
+    }
     oldPnSelect.style.display = "";
-    bindPNSelectUpdate();
+    oldPN.style.display = "none";
   } else {
     if (oldPnSelect) oldPnSelect.style.display = "none";
     oldPN.style.display = "";
@@ -357,7 +342,7 @@ function update() {
   let pn2 = "";
   const newPnSelect = document.getElementById("newPNSelect");
   const oldPnSelect = document.getElementById("oldPNSelect");
-  if (type === "硬盘") {
+  if (type === "硬盘" || type === "CPU") {
     pn1 = (newPnSelect && newPnSelect.style.display !== "none") ? newPnSelect.value : newPN.value.trim();
     pn2 = (oldPnSelect && oldPnSelect.style.display !== "none") ? oldPnSelect.value : oldPN.value.trim();
   } else {
@@ -427,29 +412,16 @@ function update() {
     }
   }
 
-  // 文本预览生成（对齐优化）
-  const pad = (label, width = 8) => (label + '：').padEnd(width, ' ');
-  const text =
-    `${pad('上新下旧')}更换「${type || '请选择'}"
-` +
-    `${pad('单号')}${order}
-` +
-    (isOptical
-      ? `${pad('位置')}${switchLoc} ${port}
-`
-      : `${pad('服务器SN')}${server}
-`) +
-    `${pad('新件品牌')}${brand1}
-` +
-    `${pad('新件SN')}${sn1}
-` +
-    `${pad('新件PN')}${pn1}
-` +
-    `${pad('旧件品牌')}${brand2}
-` +
-    `${pad('旧件SN')}${sn2}
-` +
-    `${pad('旧件PN')}${pn2}`;
+  // 文本预览生成（顶格写法）
+  const text = `上新下旧：更换「${type || '请选择'}」
+单号：${order}
+${isOptical ? "位置：" + switchLoc + " " + port : "服务器SN：" + server}
+新件品牌：${brand1}
+新件SN：${sn1}
+新件PN：${pn1}
+旧件品牌：${brand2}
+旧件SN：${sn2}
+旧件PN：${pn2}`;
 
   preview.textContent = text;
   hljs.highlightElement(preview);
