@@ -34,7 +34,7 @@
     }
 
     // 版本信息
-    const APP_VERSION = '2.1.0';  // 与 sw.js 中的版本保持一致
+    const APP_VERSION = '2.2.0';  // 与 sw.js 中的版本保持一致
 
     // 注册 Service Worker
     if ('serviceWorker' in navigator) {
@@ -42,6 +42,7 @@
       
       // 检测更新
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('检测到新的 Service Worker');
         if (!refreshing) {
           refreshing = true;
           window.location.reload();
@@ -58,6 +59,7 @@
           console.log('Service Worker 更新中...');
           
           newWorker.addEventListener('statechange', () => {
+            console.log('Service Worker 状态变化:', newWorker.state);
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               console.log('新版本可用');
               // 显示更新提示
@@ -72,9 +74,9 @@
                 <div class="toast-body">
                   <p>新版本已就绪，更新内容：</p>
                   <ul class="mb-2">
-                    <li>优化 CPU 型号选择</li>
-                    <li>改进更新检测机制</li>
-                    <li>增强安全性</li>
+                    <li>优化更新检测机制</li>
+                    <li>改进缓存管理</li>
+                    <li>增强稳定性</li>
                   </ul>
                   <button class="btn btn-primary btn-sm" onclick="window.location.reload()">立即更新</button>
                 </div>
@@ -88,10 +90,11 @@
 
         // 定期检查更新
         setInterval(() => {
+          console.log('检查更新...');
           registration.update().catch(error => {
             console.error('检查更新失败:', error);
           });
-        }, 1000 * 60 * 60); // 每小时检查一次
+        }, 1000 * 60 * 5); // 每5分钟检查一次
       }).catch(error => {
         console.error('Service Worker 注册失败:', error);
         showToast('应用初始化失败，请刷新页面重试', 'danger');
@@ -1014,11 +1017,13 @@ ${isOptical ? '位置：' + positionText : positionText}
       orderNo, switchLocation, portNo, serverSN, newSN, oldSN,
       newPN, oldPN, typeSelect, newBrand, oldBrand
     ].forEach(el => {
-      el.addEventListener('input', saveFormData);
-      el.addEventListener('change', saveFormData);
-      el.addEventListener('paste', function() {
-        setTimeout(saveFormData, 0);
-      });
+      if (el) {
+        el.addEventListener('input', saveFormData);
+        el.addEventListener('change', saveFormData);
+        el.addEventListener('paste', function() {
+          setTimeout(saveFormData, 0);
+        });
+      }
     });
 
     // select PN 变化也要保存（动态生成的select也要绑定）
