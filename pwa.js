@@ -3,9 +3,7 @@ const VERSION = '2.2.1';
 const CACHE_NAME = `pda-cache-${VERSION}`;
 const PARTS_DATA_CACHE = `parts-data-${VERSION}`;
 
-// 直接使用 window.partsData，无需再定义数据
-
-// 注册 Service Worker
+// 只保留 Service Worker 注册和 PWA 相关逻辑
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/pda_pwa/sw.js')
@@ -47,23 +45,3 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
-
-// 立即初始化数据
-initializeData();
-
-// 导出数据加载函数（如果需要）
-window.loadPartsData = async function() {
-  try {
-    const response = await fetch('/pda_pwa/parts-data');
-    if (!response.ok) {
-      throw new Error('数据加载失败');
-    }
-    const data = await response.json();
-    window.partsData = data;
-    window.dispatchEvent(new CustomEvent('partsDataLoaded'));
-  } catch (error) {
-    console.error('加载配件数据失败:', error);
-    // 如果加载失败，使用内置数据
-    initializeData();
-  }
-};
