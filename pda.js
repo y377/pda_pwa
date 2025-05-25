@@ -50,78 +50,78 @@ function showToast(msg, type = "primary") {
 }
 
 function updateBrandOptions() {
-  // 添加数据检查
-  if (!window.partsData || !window.partsData.brandMap) {
-    console.warn('配件数据尚未加载完成');
-    return;
-  }
-
+  // 彻底防止 brandMap 报错
+  if (!window.partsData || !window.partsData.brandMap) return;
   const type = typeSelect.value;
   const brandMap = window.partsData.brandMap;
   const section = document.getElementById("brandSection");
-  
-  if (type && brandMap[type]) {
-    newBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
-    oldBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
-    section.classList.remove("d-none");
-
-    // 如果是硬盘类型，需要立即更新PN选项
-    if (type === "硬盘") {
-      const newList = window.partsData.diskPnList.filter((item) => item.brand === newBrand.value);
-      const oldList = window.partsData.diskPnList.filter((item) => item.brand === oldBrand.value);
-
-      const newPnSelect = document.getElementById("newPNSelect");
-      const oldPnSelect = document.getElementById("oldPNSelect");
-
-      if (newPnSelect) {
-        newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + newList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-      }
-      if (oldPnSelect) {
-        oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + oldList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-      }
-    }
-  } else {
+  if (!type || !brandMap[type]) {
     newBrand.innerHTML = "";
     oldBrand.innerHTML = "";
     section.classList.add("d-none");
+    return;
+  }
+  newBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
+  oldBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
+  section.classList.remove("d-none");
+  if (type === "硬盘") {
+    const newList = window.partsData.diskPnList.filter((item) => item.brand === newBrand.value);
+    const oldList = window.partsData.diskPnList.filter((item) => item.brand === oldBrand.value);
+    const newPnSelect = document.getElementById("newPNSelect");
+    const oldPnSelect = document.getElementById("oldPNSelect");
+    if (newPnSelect) {
+      newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + newList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
+    }
+    if (oldPnSelect) {
+      oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + oldList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
+    }
   }
   updatePnOptions(type, newBrand.value, newPnOptions);
   updatePnOptions(type, oldBrand.value, oldPnOptions);
 }
 
-// 修改页面加载事件
-document.addEventListener('DOMContentLoaded', () => {
-  // 等待数据加载完成
-  const checkData = () => {
+// 添加等待数据加载函数
+function waitForData() {
+  return new Promise((resolve) => {
     if (window.partsData && window.partsData.brandMap) {
-      // 数据已加载，初始化界面
-      loadFormData();
+      resolve();
     } else {
-      // 数据未加载，继续等待
-      setTimeout(checkData, 100);
+      const checkData = () => {
+        if (window.partsData && window.partsData.brandMap) {
+          resolve();
+        } else {
+          setTimeout(checkData, 100);
+        }
+      };
+      checkData();
     }
-  };
-  
-  // 开始检查数据
-  checkData();
+  });
+}
+
+// 修改页面加载事件
+document.addEventListener('DOMContentLoaded', async () => {
+  // 等待数据加载完成
+  await waitForData();
+  // 初始化表单
+  loadFormData();
 });
 
 // 修改 loadFormData 函数
-function loadFormData() {
+async function loadFormData() {
+  // 等待数据加载完成
+  await waitForData();
+  
   restoring = true;
   try {
     // 1. 恢复类型
     const typeVal = localStorage.getItem("pda_type") || "请选择";
     typeSelect.value = typeVal;
-    typeSelect.dispatchEvent(new Event("change"));
-
+    
     // 2. 恢复品牌
     const newBrandVal = localStorage.getItem("pda_newBrand") || "请选择";
     const oldBrandVal = localStorage.getItem("pda_oldBrand") || "请选择";
     newBrand.value = newBrandVal;
     oldBrand.value = oldBrandVal;
-    newBrand.dispatchEvent(new Event("change"));
-    oldBrand.dispatchEvent(new Event("change"));
 
     // 3. 恢复输入框
     [
@@ -134,7 +134,6 @@ function loadFormData() {
     ].forEach(([el, key]) => {
       const val = localStorage.getItem(key) || "";
       el.value = val;
-      el.dispatchEvent(new Event("input"));
     });
 
     // 4. 恢复PN
@@ -151,7 +150,6 @@ function loadFormData() {
         const select = document.getElementById(selectId);
         if (select) {
           select.value = val;
-          select.dispatchEvent(new Event("change"));
         }
       });
     } else {
@@ -164,28 +162,29 @@ function loadFormData() {
         const select = document.getElementById(selectId);
         if (select && select.style.display !== "none") {
           select.value = val;
-          select.dispatchEvent(new Event("change"));
         } else {
           input.value = val;
-          input.dispatchEvent(new Event("input"));
         }
       });
     }
+
+    // 最后触发一次更新
+    typeSelect.dispatchEvent(new Event("change"));
   } finally {
     restoring = false;
     update();
   }
 }
 
-// 添加事件绑定函数
+// 修改事件绑定函数
 function bindEvents() {
   if (typeSelect) {
-    typeSelect.addEventListener("change", () => {
+    typeSelect.addEventListener("change", async () => {
       const type = typeSelect.value;
       const isOptical = type === "光模块";
       if (serverSNRow) serverSNRow.classList.toggle("d-none", isOptical);
       if (switchInfoRow) switchInfoRow.classList.toggle("d-none", !isOptical);
-      updateBrandOptions();
+      await updateBrandOptions();
       update();
       switchPnInput(type === "硬盘" || type === "CPU");
     });
@@ -237,7 +236,6 @@ function renderDiskPnOptions(datalist, brand) {
 function switchPnInput(type) {
   const isDisk = type === "硬盘";
   const isCpu = type === "CPU";
-
   // 新件PN
   const newPnParent = newPN.parentElement;
   let newPnSelect = document.getElementById("newPNSelect");
@@ -260,11 +258,11 @@ function switchPnInput(type) {
     }
     newPN.style.display = "none";
     newPnSelect.style.display = "";
+    bindPNSelectUpdate();
   } else {
     if (newPnSelect) newPnSelect.style.display = "none";
     newPN.style.display = "";
   }
-
   // 旧件PN
   const oldPnParent = oldPN.parentElement;
   let oldPnSelect = document.getElementById("oldPNSelect");
@@ -287,10 +285,22 @@ function switchPnInput(type) {
     }
     oldPN.style.display = "none";
     oldPnSelect.style.display = "";
+    bindPNSelectUpdate();
   } else {
     if (oldPnSelect) oldPnSelect.style.display = "none";
     oldPN.style.display = "";
   }
+}
+
+// 监听硬盘PN select 的变化，实时更新预览
+function bindPNSelectUpdate() {
+  ["newPNSelect", "oldPNSelect"].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) {
+      sel.removeEventListener("change", update); // 防止重复绑定
+      sel.addEventListener("change", update);
+    }
+  });
 }
 
 // 修改updatePnOptions函数
@@ -342,9 +352,19 @@ function update() {
   const brand1 = newBrand.value || "";
   const brand2 = oldBrand.value || "";
 
-  let pn1 = type === "硬盘" ? document.getElementById("newPNSelect")?.value || "" : newPN.value.trim();
+  // 优先取 select 的值
+  let pn1 = "";
+  let pn2 = "";
+  const newPnSelect = document.getElementById("newPNSelect");
+  const oldPnSelect = document.getElementById("oldPNSelect");
+  if (type === "硬盘") {
+    pn1 = (newPnSelect && newPnSelect.style.display !== "none") ? newPnSelect.value : newPN.value.trim();
+    pn2 = (oldPnSelect && oldPnSelect.style.display !== "none") ? oldPnSelect.value : oldPN.value.trim();
+  } else {
+    pn1 = newPN.value.trim();
+    pn2 = oldPN.value.trim();
+  }
   let sn1 = newSN.value.trim();
-  let pn2 = type === "硬盘" ? document.getElementById("oldPNSelect")?.value || "" : oldPN.value.trim();
   let sn2 = oldSN.value.trim();
 
   // 清除提示
@@ -407,24 +427,36 @@ function update() {
     }
   }
 
-  // 文本预览生成
-  const positionText = isOptical ? `${switchLoc} ${port}` : `服务器SN：${server}`;
-
-  const text = `上新下旧：更换「${type}」
-  单号：${order}
-  ${isOptical ? "位置：" + positionText : positionText}
-  新件品牌：${brand1}
-  新件SN：${sn1}
-  新件PN：${pn1}
-  旧件品牌：${brand2}
-  旧件SN：${sn2}
-  旧件PN：${pn2}`;
+  // 文本预览生成（对齐优化）
+  const pad = (label, width = 8) => (label + '：').padEnd(width, ' ');
+  const text =
+    `${pad('上新下旧')}更换「${type || '请选择'}"
+` +
+    `${pad('单号')}${order}
+` +
+    (isOptical
+      ? `${pad('位置')}${switchLoc} ${port}
+`
+      : `${pad('服务器SN')}${server}
+`) +
+    `${pad('新件品牌')}${brand1}
+` +
+    `${pad('新件SN')}${sn1}
+` +
+    `${pad('新件PN')}${pn1}
+` +
+    `${pad('旧件品牌')}${brand2}
+` +
+    `${pad('旧件SN')}${sn2}
+` +
+    `${pad('旧件PN')}${pn2}`;
 
   preview.textContent = text;
   hljs.highlightElement(preview);
   saveFormData();
 }
 
+// 修改 sendToFeishu 函数
 function sendToFeishu() {
   const type = typeSelect.value;
   const orderInput = orderNo.value.trim();
@@ -468,7 +500,6 @@ function sendToFeishu() {
     [{ tag: "text", text: `旧件PN：${pn2}` }],
   ];
 
-  // 修正结构，外层加post
   const feishuPost = {
     post: {
       zh_cn: {
@@ -492,17 +523,15 @@ function sendToFeishu() {
       }
       return res.json();
     })
-    .then((data) => {
+    .then(() => {
       showToast("已发送 ✅", "success");
-      console.log(data);
     })
-    .catch((err) => {
+    .catch(() => {
       showToast("发送失败 ❌", "danger");
-      console.error(err);
     });
 }
 
-// 新增申领通知函数
+// 修改 sendApplyNotify 函数
 function sendApplyNotify() {
   const orderInput = orderNo.value.trim();
   const urlMatch = orderInput.match(/https?:\/\/[\S]+/);
@@ -542,13 +571,11 @@ function sendApplyNotify() {
       }
       return res.json();
     })
-    .then((data) => {
+    .then(() => {
       showToast("申领通知已发送 ✅", "success");
-      console.log(data);
     })
-    .catch((err) => {
+    .catch(() => {
       showToast("申领通知发送失败 ❌", "danger");
-      console.error(err);
     });
 }
 
