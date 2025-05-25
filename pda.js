@@ -54,14 +54,38 @@ function updateBrandOptions() {
   const type = typeSelect.value;
   const brandMap = window.partsData.brandMap;
   const section = document.getElementById("brandSection");
+  
   if (!type || !brandMap[type]) {
     newBrand.innerHTML = "";
     oldBrand.innerHTML = "";
     section.classList.add("d-none");
     return;
   }
-  newBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
-  oldBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
+
+  // 保存当前选中的值
+  const currentNewBrand = newBrand.value;
+  const currentOldBrand = oldBrand.value;
+
+  // 生成选项
+  const options = brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
+  
+  // 更新下拉框，保持当前选中的值
+  newBrand.innerHTML = options;
+  oldBrand.innerHTML = options;
+  
+  // 如果之前有选中的值，且该值在当前选项中存在，则恢复选中
+  if (currentNewBrand && brandMap[type].includes(currentNewBrand)) {
+    newBrand.value = currentNewBrand;
+  } else {
+    newBrand.value = brandMap[type][0]; // 默认选中第一个选项
+  }
+  
+  if (currentOldBrand && brandMap[type].includes(currentOldBrand)) {
+    oldBrand.value = currentOldBrand;
+  } else {
+    oldBrand.value = brandMap[type][0]; // 默认选中第一个选项
+  }
+
   section.classList.remove("d-none");
   updatePnOptions(type, newBrand.value, newPnOptions);
   updatePnOptions(type, oldBrand.value, oldPnOptions);
