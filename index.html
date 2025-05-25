@@ -193,7 +193,7 @@
       // 更新品牌选项
       function updateBrandOptions(type) {
         const section = document.getElementById('brandSection');
-        const brands = partsData.brandMap[type];
+        const brands = brandMap[type];
         if (brands) {
           if (newBrand) {
             newBrand.innerHTML = '';
@@ -1164,7 +1164,7 @@ function sendToFeishu() {
     return res.json();
   })
   .then(data => {
-    showToast('已发送到飞书 ✅', 'success');
+    showToast('已发送 ✅', 'success');
     console.log(data);
   })
   .catch(err => {
