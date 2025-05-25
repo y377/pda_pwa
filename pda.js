@@ -415,7 +415,7 @@ function update() {
   }
 
   // 文本预览生成（顶格写法）
-  const text = `上新下旧：更换「${type || '请选择'}」
+  const text = `上新下旧：更换「${type || ' '}」
 单号：${order}
 ${isOptical ? "位置：" + switchLoc + " " + port : "服务器SN：" + server}
 新件品牌：${brand1}
@@ -426,6 +426,10 @@ ${isOptical ? "位置：" + switchLoc + " " + port : "服务器SN：" + server}
 旧件PN：${pn2}`;
 
   preview.textContent = text;
+  // 解决 highlight.js 控制台警告
+  if (preview.dataset.highlighted) {
+    delete preview.dataset.highlighted;
+  }
   hljs.highlightElement(preview);
   saveFormData();
 }
