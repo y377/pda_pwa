@@ -3,10 +3,6 @@ const VERSION = '2.2.1';  // 修改版本号
 const CACHE_NAME = `pda-cache-${VERSION}`;
 const PARTS_DATA_CACHE = `parts-data-${VERSION}`;
 
-// 加载全局配件数据
-importScripts('parts-data.js');
-// 现在 sw.js 里可以直接用 self.partsData
-
 // 安全配置
 const SECURITY_HEADERS = {
   'Content-Security-Policy': "default-src 'self' https://lib.baomitu.com; script-src 'self' 'unsafe-inline' https://lib.baomitu.com; style-src 'self' 'unsafe-inline' https://lib.baomitu.com; img-src 'self' data: https:; connect-src 'self' https://test.jsjs.net",
