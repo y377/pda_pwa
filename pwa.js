@@ -1,21 +1,3 @@
-// 检测浏览器类型
-if (navigator.userAgent.includes("OPR")) {
-  const toast = document.createElement("div");
-  toast.className = "toast show position-fixed top-0 start-50 translate-middle-x mt-3";
-  toast.setAttribute("role", "alert");
-  toast.innerHTML = `
-        <div class="toast-header bg-warning">
-          <strong class="me-auto">浏览器提示</strong>
-          <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-        </div>
-        <div class="toast-body">
-          建议使用 Chrome 浏览器获得最佳体验
-        </div>
-      `;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 5000);
-}
-
 // 版本控制
 const VERSION = '2.2.0';
 const CACHE_NAME = `pda-cache-${VERSION}`;
@@ -92,16 +74,21 @@ if ('serviceWorker' in navigator) {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // 新版本已安装，显示更新提示
               const updateToast = document.createElement('div');
-              updateToast.className = 'toast align-items-center text-bg-primary border-0 show position-fixed top-50 start-50 translate-middle';
+              updateToast.className = 'toast show position-fixed top-50 start-50 translate-middle';
               updateToast.style.zIndex = '9999';
               updateToast.innerHTML = `
-                <div class="d-flex">
-                  <div class="toast-body">
-                    新版本已就绪，是否更新？
-                  </div>
-                  <div class="mt-2 pt-2 border-top">
-                    <button type="button" class="btn btn-primary btn-sm me-2" onclick="window.location.reload()">更新</button>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="this.parentElement.parentElement.parentElement.remove()">稍后</button>
+                <div class="toast-body bg-primary text-white rounded p-3">
+                  <div class="d-flex align-items-center">
+                    <div class="me-3">
+                      <i class="bi bi-arrow-clockwise"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold mb-1">发现新版本</div>
+                      <div class="small">点击更新以使用最新功能</div>
+                    </div>
+                    <button type="button" class="btn btn-light btn-sm ms-3" onclick="window.location.reload()">
+                      更新
+                    </button>
                   </div>
                 </div>
               `;
