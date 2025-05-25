@@ -1,5 +1,5 @@
 // 版本控制
-const VERSION = '2.1.0';  // 主版本.次版本.修订版本
+const VERSION = '2.2.0';  // 主版本.次版本.修订版本
 const CACHE_NAME = `pda-cache-${VERSION}`;
 const PARTS_DATA_CACHE = `parts-data-${VERSION}`;
 
