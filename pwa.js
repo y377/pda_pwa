@@ -6,7 +6,7 @@ const PARTS_DATA_CACHE = `parts-data-${VERSION}`;
 // 注册 Service Worker 并实现用户可见的更新提示
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/pda_pwa/sw.js')
+    navigator.serviceWorker.register('/sw.js')
       .then(registration => {
       // 检查更新
         registration.addEventListener('updatefound', () => {
@@ -25,7 +25,7 @@ if ('serviceWorker' in navigator) {
 // 检查更新
 async function checkUpdate() {
   try {
-    const response = await fetch('/pda_pwa/manifest.json');
+    const response = await fetch('/manifest.json');
     const manifest = await response.json();
     const currentVersion = localStorage.getItem('app-version');
     
