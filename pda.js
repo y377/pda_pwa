@@ -97,69 +97,76 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 修改 loadFormData 函数
 async function loadFormData() {
-  // 等待数据加载完成
   await waitForData();
-  
   restoring = true;
   try {
     // 1. 恢复类型
-    const typeVal = localStorage.getItem("pda_type") || "请选择";
+    const typeVal = localStorage.getItem('pda_type') || '请选择';
     typeSelect.value = typeVal;
-    
-    // 2. 恢复品牌
-    const newBrandVal = localStorage.getItem("pda_newBrand") || "请选择";
-    const oldBrandVal = localStorage.getItem("pda_oldBrand") || "请选择";
-    newBrand.value = newBrandVal;
-    oldBrand.value = oldBrandVal;
+    updateBrandOptions(); // 先渲染品牌下拉
 
-    // 3. 恢复输入框
-    [
-      [orderNo, "pda_orderNo"],
-      [switchLocation, "pda_switchLocation"],
-      [portNo, "pda_portNo"],
-      [serverSN, "pda_serverSN"],
-      [newSN, "pda_newSN"],
-      [oldSN, "pda_oldSN"],
-    ].forEach(([el, key]) => {
-      const val = localStorage.getItem(key) || "";
-      el.value = val;
-    });
+    setTimeout(() => {
+      // 2. 恢复品牌
+      const newBrandVal = localStorage.getItem('pda_newBrand') || '请选择';
+      const oldBrandVal = localStorage.getItem('pda_oldBrand') || '请选择';
+      newBrand.value = newBrandVal;
+      oldBrand.value = oldBrandVal;
+      newBrand.dispatchEvent(new Event('change'));
+      oldBrand.dispatchEvent(new Event('change'));
 
-    // 4. 恢复PN
-    if (typeSelect.value === "硬盘") {
-      switchPnInput(true);
-      updatePnOptions("硬盘", newBrand.value, newPnOptions);
-      updatePnOptions("硬盘", oldBrand.value, oldPnOptions);
+      setTimeout(() => {
+        // 3. 恢复输入框
+        [
+          [orderNo, 'pda_orderNo'],
+          [switchLocation, 'pda_switchLocation'],
+          [portNo, 'pda_portNo'],
+          [serverSN, 'pda_serverSN'],
+          [newSN, 'pda_newSN'],
+          [oldSN, 'pda_oldSN']
+        ].forEach(([el, key]) => {
+          const val = localStorage.getItem(key) || '';
+          el.value = val;
+          el.dispatchEvent(new Event('input'));
+        });
 
-      [
-        ["new", "pda_newPN", "newPNSelect"],
-        ["old", "pda_oldPN", "oldPNSelect"],
-      ].forEach(([type, key, selectId]) => {
-        const val = localStorage.getItem(key) || "";
-        const select = document.getElementById(selectId);
-        if (select) {
-          select.value = val;
-        }
-      });
-    } else {
-      [
-        ["new", "pda_newPN", "newPNSelect"],
-        ["old", "pda_oldPN", "oldPNSelect"],
-      ].forEach(([type, key, selectId]) => {
-        const val = localStorage.getItem(key) || "";
-        const input = document.getElementById(type === "new" ? "newPN" : "oldPN");
-        const select = document.getElementById(selectId);
-        if (select && select.style.display !== "none") {
-          select.value = val;
+        // 4. 恢复PN
+        if (typeSelect.value === '硬盘') {
+          switchPnInput('硬盘');
+          updatePnOptions('硬盘', newBrand.value, newPnOptions);
+          updatePnOptions('硬盘', oldBrand.value, oldPnOptions);
+          setTimeout(() => {
+            [['new', 'pda_newPN', 'newPNSelect'], ['old', 'pda_oldPN', 'oldPNSelect']].forEach(([type, key, selectId]) => {
+              const val = localStorage.getItem(key) || '';
+              const select = document.getElementById(selectId);
+              if (select) {
+                select.value = val;
+                select.dispatchEvent(new Event('change'));
+              }
+            });
+            bindPNSelectSave();
+            restoring = false;
+            update();
+          }, 120);
         } else {
-          input.value = val;
+          [['new', 'pda_newPN', 'newPNSelect'], ['old', 'pda_oldPN', 'oldPNSelect']].forEach(([type, key, selectId]) => {
+            const val = localStorage.getItem(key) || '';
+            const input = document.getElementById(type === 'new' ? 'newPN' : 'oldPN');
+            const select = document.getElementById(selectId);
+            if (select && select.style.display !== 'none') {
+              select.value = val;
+              select.dispatchEvent(new Event('change'));
+            } else {
+              input.value = val;
+              input.dispatchEvent(new Event('input'));
+            }
+          });
+          bindPNSelectSave();
+          restoring = false;
+          update();
         }
-      });
-    }
-
-    // 最后触发一次更新
-    typeSelect.dispatchEvent(new Event("change"));
-  } finally {
+      }, 100);
+    }, 100);
+  } catch (e) {
     restoring = false;
     update();
   }
