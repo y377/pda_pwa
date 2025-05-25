@@ -241,28 +241,33 @@
       }
 
       // 初始化类型选择
-      typeSelect.addEventListener('change', () => {
+      if (typeSelect) typeSelect.addEventListener('change', () => {
+        const type = typeSelect.value;
+        const isOptical = type === '光模块';
+        if (serverSNRow) serverSNRow.classList.toggle('d-none', isOptical);
+        if (switchInfoRow) switchInfoRow.classList.toggle('d-none', !isOptical);
         updateBrandOptions();
-        switchPnInput(typeSelect.value);
+        update();
+        switchPnInput(type === '硬盘' || type === 'CPU');
       });
 
       // 初始化品牌选择
-      brandSelect.addEventListener('change', () => {
+      if (brandSelect) brandSelect.addEventListener('change', () => {
         updatePnOptions();
       });
 
       // 初始化PN选择
-      pnSelect.addEventListener('change', () => {
-        pnInput.value = pnSelect.value;
+      if (pnSelect) pnSelect.addEventListener('change', () => {
+        if (pnInput) pnInput.value = pnSelect.value;
       });
 
       // 初始化数量输入
-      quantityInput.addEventListener('input', () => {
+      if (quantityInput) quantityInput.addEventListener('input', () => {
         quantityInput.value = quantityInput.value.replace(/[^\d]/g, '');
       });
 
       // 初始化添加按钮
-      addButton.addEventListener('click', () => {
+      if (addButton) addButton.addEventListener('click', () => {
         const type = typeSelect.value;
         const brand = brandSelect.value;
         const pn = pnInput.value;
@@ -291,7 +296,7 @@
       });
 
       // 初始化导出按钮
-      exportButton.addEventListener('click', () => {
+      if (exportButton) exportButton.addEventListener('click', () => {
         const items = JSON.parse(localStorage.getItem('parts') || '[]');
         if (items.length === 0) {
           showToast('没有数据可导出');
@@ -315,7 +320,7 @@
       });
 
       // 初始化清空按钮
-      clearButton.addEventListener('click', () => {
+      if (clearButton) clearButton.addEventListener('click', () => {
         if (confirm('确定要清空所有数据吗？')) {
           localStorage.removeItem('parts');
           updatePartsList();
@@ -324,7 +329,7 @@
       });
 
       // 初始化复制按钮
-      copyButton.addEventListener('click', () => {
+      if (copyButton) copyButton.addEventListener('click', () => {
         const items = JSON.parse(localStorage.getItem('parts') || '[]');
         if (items.length === 0) {
           showToast('没有数据可复制');
@@ -343,7 +348,7 @@
       });
 
       // 初始化关闭按钮
-      toastClose.addEventListener('click', () => {
+      if (toastClose) toastClose.addEventListener('click', () => {
         bsToast.hide();
       });
 
@@ -370,11 +375,11 @@
 
       // 重置表单
       function resetForm() {
-        typeSelect.value = '';
-        brandSelect.value = '';
-        pnInput.value = '';
-        pnSelect.value = '';
-        quantityInput.value = '';
+        if (typeSelect) typeSelect.value = '';
+        if (brandSelect) brandSelect.value = '';
+        if (pnInput) pnInput.value = '';
+        if (pnSelect) pnSelect.value = '';
+        if (quantityInput) quantityInput.value = '';
         updateBrandOptions();
         switchPnInput('');
       }
@@ -804,40 +809,42 @@ ${isOptical ? '位置：' + positionText : positionText}
     }
 
     // 注册事件
-    typeSelect.addEventListener('change', () => {
+    if (typeSelect) typeSelect.addEventListener('change', () => {
       const type = typeSelect.value;
       const isOptical = type === '光模块';
-      serverSNRow.classList.toggle('d-none', isOptical);
-      switchInfoRow.classList.toggle('d-none', !isOptical);
+      if (serverSNRow) serverSNRow.classList.toggle('d-none', isOptical);
+      if (switchInfoRow) switchInfoRow.classList.toggle('d-none', !isOptical);
       updateBrandOptions(type);
       update();
       switchPnInput(type === '硬盘' || type === 'CPU');
     });
 
-    [newBrand, oldBrand].forEach((select, index) => {
-      select.addEventListener('change', () => {
-        const type = typeSelect.value;
-        const datalist = index === 0 ? newPnOptions : oldPnOptions;
-        updatePnOptions(type, select.value, datalist);
-        // 如果是硬盘类型，需要更新select的选项
-        if (type === '硬盘') {
-          const selectId = index === 0 ? 'newPNSelect' : 'oldPNSelect';
-          const pnSelect = document.getElementById(selectId);
-          if (pnSelect) {
-            const list = diskPnList.filter(item => item.brand === select.value);
-            pnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
+    if (newBrand && oldBrand) {
+      [newBrand, oldBrand].forEach((select, index) => {
+        select.addEventListener('change', () => {
+          const type = typeSelect.value;
+          const datalist = index === 0 ? newPnOptions : oldPnOptions;
+          updatePnOptions(type, select.value, datalist);
+          // 如果是硬盘类型，需要更新select的选项
+          if (type === '硬盘') {
+            const selectId = index === 0 ? 'newPNSelect' : 'oldPNSelect';
+            const pnSelect = document.getElementById(selectId);
+            if (pnSelect) {
+              const list = diskPnList.filter(item => item.brand === select.value);
+              pnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
+            }
           }
-        }
-        update();
+          update();
+        });
       });
-    });
+    }
 
     [
       orderNo, serverSN, switchLocation, portNo,
       newPN, newSN, oldPN, oldSN
     ].forEach(el => el.addEventListener('input', update));
 
-    copyBtn.addEventListener('click', () => {
+    if (copyBtn) copyBtn.addEventListener('click', () => {
       const text = preview.innerText.trim();
       navigator.clipboard.writeText(text).then(() => {
         showToast('已复制到剪贴板');
