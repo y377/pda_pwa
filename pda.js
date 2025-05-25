@@ -50,49 +50,131 @@ function showToast(msg, type = "primary") {
 }
 
 function updateBrandOptions() {
+  // 添加数据检查
   if (!window.partsData || !window.partsData.brandMap) {
     console.warn('配件数据尚未加载完成');
     return;
   }
-  
+
+  const type = typeSelect.value;
   const brandMap = window.partsData.brandMap;
-  const type = document.getElementById('type').value;
+  const section = document.getElementById("brandSection");
   
   if (type && brandMap[type]) {
-    const newBrandSelect = document.getElementById('newBrand');
-    const oldBrandSelect = document.getElementById('oldBrand');
-    
-    // 清空现有选项
-    newBrandSelect.innerHTML = '';
-    oldBrandSelect.innerHTML = '';
-    
-    // 添加新选项
-    brandMap[type].forEach(brand => {
-      newBrandSelect.add(new Option(brand, brand));
-      oldBrandSelect.add(new Option(brand, brand));
+    newBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
+    oldBrand.innerHTML = "<option selected>请选择</option>" + brandMap[type].map((b) => `<option value="${b}">${b}</option>`).join("");
+    section.classList.remove("d-none");
+
+    // 如果是硬盘类型，需要立即更新PN选项
+    if (type === "硬盘") {
+      const newList = window.partsData.diskPnList.filter((item) => item.brand === newBrand.value);
+      const oldList = window.partsData.diskPnList.filter((item) => item.brand === oldBrand.value);
+
+      const newPnSelect = document.getElementById("newPNSelect");
+      const oldPnSelect = document.getElementById("oldPNSelect");
+
+      if (newPnSelect) {
+        newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + newList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
+      }
+      if (oldPnSelect) {
+        oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + oldList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
+      }
+    }
+  } else {
+    newBrand.innerHTML = "";
+    oldBrand.innerHTML = "";
+    section.classList.add("d-none");
+  }
+  updatePnOptions(type, newBrand.value, newPnOptions);
+  updatePnOptions(type, oldBrand.value, oldPnOptions);
+}
+
+// 修改页面加载事件
+document.addEventListener('DOMContentLoaded', () => {
+  // 等待数据加载完成
+  const checkData = () => {
+    if (window.partsData && window.partsData.brandMap) {
+      // 数据已加载，初始化界面
+      loadFormData();
+    } else {
+      // 数据未加载，继续等待
+      setTimeout(checkData, 100);
+    }
+  };
+  
+  // 开始检查数据
+  checkData();
+});
+
+// 修改 loadFormData 函数
+function loadFormData() {
+  restoring = true;
+  try {
+    // 1. 恢复类型
+    const typeVal = localStorage.getItem("pda_type") || "请选择";
+    typeSelect.value = typeVal;
+    typeSelect.dispatchEvent(new Event("change"));
+
+    // 2. 恢复品牌
+    const newBrandVal = localStorage.getItem("pda_newBrand") || "请选择";
+    const oldBrandVal = localStorage.getItem("pda_oldBrand") || "请选择";
+    newBrand.value = newBrandVal;
+    oldBrand.value = oldBrandVal;
+    newBrand.dispatchEvent(new Event("change"));
+    oldBrand.dispatchEvent(new Event("change"));
+
+    // 3. 恢复输入框
+    [
+      [orderNo, "pda_orderNo"],
+      [switchLocation, "pda_switchLocation"],
+      [portNo, "pda_portNo"],
+      [serverSN, "pda_serverSN"],
+      [newSN, "pda_newSN"],
+      [oldSN, "pda_oldSN"],
+    ].forEach(([el, key]) => {
+      const val = localStorage.getItem(key) || "";
+      el.value = val;
+      el.dispatchEvent(new Event("input"));
     });
-  }
-}
 
-// 修改数据加载检查函数
-function checkDataLoaded() {
-  if (!window.partsData || !window.partsData.brandMap) {
-    console.warn('等待配件数据加载...');
-    setTimeout(checkDataLoaded, 100);
-    return;
-  }
-  
-  // 数据加载完成后初始化界面
-  initializeUI();
-}
+    // 4. 恢复PN
+    if (typeSelect.value === "硬盘") {
+      switchPnInput(true);
+      updatePnOptions("硬盘", newBrand.value, newPnOptions);
+      updatePnOptions("硬盘", oldBrand.value, oldPnOptions);
 
-// 添加初始化界面函数
-function initializeUI() {
-  // 恢复表单数据
-  loadFormData();
-  
-  // 绑定事件
-  bindEvents();
+      [
+        ["new", "pda_newPN", "newPNSelect"],
+        ["old", "pda_oldPN", "oldPNSelect"],
+      ].forEach(([type, key, selectId]) => {
+        const val = localStorage.getItem(key) || "";
+        const select = document.getElementById(selectId);
+        if (select) {
+          select.value = val;
+          select.dispatchEvent(new Event("change"));
+        }
+      });
+    } else {
+      [
+        ["new", "pda_newPN", "newPNSelect"],
+        ["old", "pda_oldPN", "oldPNSelect"],
+      ].forEach(([type, key, selectId]) => {
+        const val = localStorage.getItem(key) || "";
+        const input = document.getElementById(type === "new" ? "newPN" : "oldPN");
+        const select = document.getElementById(selectId);
+        if (select && select.style.display !== "none") {
+          select.value = val;
+          select.dispatchEvent(new Event("change"));
+        } else {
+          input.value = val;
+          input.dispatchEvent(new Event("input"));
+        }
+      });
+    }
+  } finally {
+    restoring = false;
+    update();
+  }
 }
 
 // 添加事件绑定函数
@@ -144,18 +226,6 @@ function bindEvents() {
         });
     });
 }
-
-// 修改页面加载事件
-document.addEventListener('DOMContentLoaded', () => {
-  // 检查数据是否已加载
-  if (window.partsData && window.partsData.brandMap) {
-    initializeUI();
-  } else {
-    // 等待数据加载完成
-    window.addEventListener('partsDataLoaded', initializeUI);
-    checkDataLoaded();
-  }
-});
 
 // 生成硬盘PN下拉选项
 function renderDiskPnOptions(datalist, brand) {
@@ -423,7 +493,7 @@ function sendToFeishu() {
       return res.json();
     })
     .then((data) => {
-      showToast("已发送到飞书 ✅", "success");
+      showToast("已发送 ✅", "success");
       console.log(data);
     })
     .catch((err) => {
@@ -549,103 +619,6 @@ document.addEventListener("change", function (e) {
     saveFormData();
   }
 });
-
-// 页面加载时恢复
-document.addEventListener("DOMContentLoaded", loadFormData);
-
-// 恢复表单数据
-function loadFormData() {
-  restoring = true;
-  // 1. 恢复类型
-  const typeVal = localStorage.getItem("pda_type") || "请选择";
-  typeSelect.value = typeVal;
-  typeSelect.dispatchEvent(new Event("change"));
-
-  setTimeout(() => {
-    // 2. 恢复品牌
-    const newBrandVal = localStorage.getItem("pda_newBrand") || "请选择";
-    const oldBrandVal = localStorage.getItem("pda_oldBrand") || "请选择";
-    newBrand.value = newBrandVal;
-    oldBrand.value = oldBrandVal;
-    newBrand.dispatchEvent(new Event("change"));
-    oldBrand.dispatchEvent(new Event("change"));
-
-    setTimeout(() => {
-      // 3. 恢复输入框
-      [
-        [orderNo, "pda_orderNo"],
-        [switchLocation, "pda_switchLocation"],
-        [portNo, "pda_portNo"],
-        [serverSN, "pda_serverSN"],
-        [newSN, "pda_newSN"],
-        [oldSN, "pda_oldSN"],
-      ].forEach(([el, key]) => {
-        const val = localStorage.getItem(key) || "";
-        el.value = val;
-        el.dispatchEvent(new Event("input"));
-      });
-
-      // 4. 恢复PN（硬盘时必须保证option已生成）
-      if (typeSelect.value === "硬盘") {
-        switchPnInput(true);
-        // 确保先更新选项
-        updatePnOptions("硬盘", newBrand.value, newPnOptions);
-        updatePnOptions("硬盘", oldBrand.value, oldPnOptions);
-
-        // 等待选项更新完成后再设置值
-        setTimeout(() => {
-          [
-            ["new", "pda_newPN", "newPNSelect"],
-            ["old", "pda_oldPN", "oldPNSelect"],
-          ].forEach(([type, key, selectId]) => {
-            const val = localStorage.getItem(key) || "";
-            const select = document.getElementById(selectId);
-            if (select) {
-              // 检查option是否有该值
-              let found = false;
-              for (let i = 0; i < select.options.length; i++) {
-                if (select.options[i].value === val) {
-                  found = true;
-                  break;
-                }
-              }
-              if (found) {
-                select.value = val;
-                select.dispatchEvent(new Event("change"));
-              } else {
-                select.value = "";
-              }
-            }
-          });
-          // 关键：恢复后重新绑定select的change事件，保证后续选择能保存
-          bindPNSelectSave();
-          restoring = false;
-          update();
-        }, 100);
-      } else {
-        // 非硬盘类型直接恢复PN
-        [
-          ["new", "pda_newPN", "newPNSelect"],
-          ["old", "pda_oldPN", "oldPNSelect"],
-        ].forEach(([type, key, selectId]) => {
-          const val = localStorage.getItem(key) || "";
-          const input = document.getElementById(type === "new" ? "newPN" : "oldPN");
-          const select = document.getElementById(selectId);
-          if (select && select.style.display !== "none") {
-            select.value = val;
-            select.dispatchEvent(new Event("change"));
-          } else {
-            input.value = val;
-            input.dispatchEvent(new Event("input"));
-          }
-        });
-        bindPNSelectSave();
-        restoring = false;
-        update();
-      }
-    }, 120);
-  }, 100);
-}
 
 // 重置按钮
 function resetForm() {
