@@ -406,22 +406,22 @@
       // 更新配件列表
       function updatePartsList() {
         const items = JSON.parse(localStorage.getItem('parts') || '[]');
-        partsList.innerHTML = items.map((item, index) => `
-          <tr>
-            <td>${item.type}</td>
-            <td>${item.brand}</td>
-            <td>${item.pn}</td>
-            <td>${item.quantity}</td>
-            <td>${item.timestamp}</td>
-            <td>
-              <button class="btn btn-danger btn-sm" onclick="deleteItem(${index})">删除</button>
-            </td>
-          </tr>
-        `).join('');
-
-        const total = items.reduce((sum, item) => sum + item.quantity, 0);
-        totalQuantity.textContent = total;
-        totalAmount.textContent = items.length;
+        if (partsList) {
+          partsList.innerHTML = items.map((item, index) => `
+            <tr>
+              <td>${item.type}</td>
+              <td>${item.brand}</td>
+              <td>${item.pn}</td>
+              <td>${item.quantity}</td>
+              <td>${item.timestamp}</td>
+              <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteItem(${index})">删除</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+        if (totalQuantity) totalQuantity.textContent = items.reduce((sum, item) => sum + item.quantity, 0);
+        if (totalAmount) totalAmount.textContent = items.length;
       }
 
       // 重置表单
