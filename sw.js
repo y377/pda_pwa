@@ -58,6 +58,11 @@ const partsData = {
     { brand: "Union Memory", pn: "UP2A63T8SD004LX", Type: "NVMe/3.84TB" },
     { brand: "Western Digital", pn: "WUH722020BLE604", Type: "HDD/20TB" },
     { brand: "Western Digital", pn: "HUS728T8TALE6L4", Type: "HDD/8TB" }
+  ],
+  cpuPnList: [
+    { brand: "Intel", pn: "Intel(R) Xeon(R) Platinum 8336C CPU @ 2.30GHz", Type: "CPU" },
+    { brand: "Intel", pn: "Intel(R) Xeon(R) Platinum 8457C CPU @ 2.60GHz", Type: "CPU" },
+    { brand: "Intel", pn: "Intel(R) Xeon(R) Platinum 8582C CPU @ 2.60GHz", Type: "CPU" }
   ]
 };
 
