@@ -49,7 +49,9 @@ self.addEventListener('install', event => {
       caches.open(PARTS_DATA_CACHE)
         .then(cache => {
           console.log('缓存配件数据...');
-          return cache.put('/pda_pwa/parts-data', new Response(JSON.stringify(self.partsData)));
+          return fetch('https://pn.jsjs.net/pn')
+            .then(res => res.clone().json())
+            .then(data => cache.put('/pda_pwa/parts-data', new Response(JSON.stringify(data))));
         })
     ]).then(() => {
       console.log('Service Worker 安装完成，准备激活');
