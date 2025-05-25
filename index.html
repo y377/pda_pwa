@@ -74,13 +74,13 @@
     <input id="newSN" type="text" class="form-control" placeholder="">
   </div>
 
-  <div class="form-group my-3">
-    <label class="form-label d-flex justify-content-between" for="newPN">
-      <span class="text-danger fw-bold">新件PN：</span><span id="checkNewPN" class="text-success"></span><small id="countNewPN" class="text-muted">字符数：0</small>
-    </label>
-    <input id="newPN" list="newPnOptions" type="text" class="form-control" placeholder="" autocorrect="off">
-    <datalist id="newPnOptions"></datalist>
-  </div>
+<div class="form-group my-3">
+  <label class="form-label d-flex justify-content-between" for="newPN">
+    <span class="text-danger fw-bold">新件PN：</span><span id="checkNewPN" class="text-success"></span><small id="countNewPN" class="text-muted">字符数：0</small>
+  </label>
+  <input id="newPN" list="newPnOptions" type="text" class="form-control" placeholder="" autocorrect="off">
+  <datalist id="newPnOptions"></datalist>
+</div>
 
   <div class="form-group my-3">
     <label class="form-label d-flex justify-content-between" for="oldSN">
@@ -89,13 +89,13 @@
     <input id="oldSN" type="text" class="form-control" placeholder="">
   </div>
 
-  <div class="form-group my-3">
-    <label class="form-label d-flex justify-content-between" for="oldPN">
-      <span class="text-dark fw-bold">旧件PN：</span><span id="checkOldPN" class="text-success"></span><small id="countOldPN" class="text-muted">字符数：0</small>
-    </label>
-    <input id="oldPN" list="oldPnOptions" type="text" class="form-control" placeholder="" autocorrect="off">
-    <datalist id="oldPnOptions"></datalist>
-  </div>
+<div class="form-group my-3">
+  <label class="form-label d-flex justify-content-between" for="oldPN">
+    <span class="text-dark fw-bold">旧件PN：</span><span id="checkOldPN" class="text-success"></span><small id="countOldPN" class="text-muted">字符数：0</small>
+  </label>
+  <input id="oldPN" list="oldPnOptions" type="text" class="form-control" placeholder="" autocorrect="off">
+  <datalist id="oldPnOptions"></datalist>
+</div>
   <div class="d-flex justify-content-between align-items-center my-4 pt-3">
     <button id="resetBtn" class="btn btn-warning" onclick="resetForm()"><i class="bi bi-arrow-counterclockwise pe-1"></i>清空</button>
     <button id="copyBtn" class="btn btn-danger"><i class="bi bi-copy pe-1"></i>复制</button>
@@ -106,7 +106,14 @@
 
   <script crossorigin="anonymous" src="https://lib.baomitu.com/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
   <script crossorigin="anonymous" src="https://lib.baomitu.com/highlight.js/11.10.0/highlight.min.js"></script>
-  <script src="parts-data.js"></script>
+  <script>
+  window.partsDataReady = false;
+  (async function() {
+    const res = await fetch('https://pn.jsjs.net/pn');
+    window.partsData = await res.json();
+    window.partsDataReady = true;
+  })();
+  </script>
   <script src="pwa.js"></script>
   <script src="pda.js"></script>
 </body>
