@@ -8,7 +8,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <link rel="icon" href="favicon.png" type="image/png">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0d6efd">
+  <meta name="theme-color" content="#6c757d">
   <link crossorigin="anonymous" href="https://lib.baomitu.com/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
   <link crossorigin="anonymous" href="https://lib.baomitu.com/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <link crossorigin="anonymous" href="https://lib.baomitu.com/highlight.js/11.10.0/styles/github-dark.css" rel="stylesheet" />
@@ -33,15 +33,95 @@
     // 注册Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
+        navigator.serviceWorker.register('/pda_pwa/sw.js')
           .then(registration => {
             console.log('ServiceWorker registration successful');
+            
+            // 检查更新
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // 显示更新提示
+                  const toast = document.createElement('div');
+                  toast.className = 'toast align-items-center text-bg-info border-0 show my-2';
+                  toast.role = 'alert';
+                  toast.innerHTML = `
+                    <div class="d-flex">
+                      <div class="toast-body">发现新版本，点击更新</div>
+                      <button type="button" class="btn btn-sm btn-light me-2" onclick="window.location.reload()">更新</button>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>`;
+                  document.getElementById('toastContainer').appendChild(toast);
+                  setTimeout(() => toast.remove(), 10000);
+                }
+              });
+            });
           })
           .catch(err => {
             console.log('ServiceWorker registration failed: ', err);
           });
       });
     }
+
+    // 从缓存加载配件数据
+    async function loadPartsData() {
+      try {
+        const response = await fetch('/pda_pwa/parts-data');
+        const data = await response.json();
+        window.brandMap = data.brandMap;
+        window.pnDataMap = data.pnDataMap;
+        window.diskPnList = data.diskPnList;
+        // 初始化表单
+        updateBrandOptions(typeSelect.value);
+      } catch (err) {
+        console.error('加载配件数据失败:', err);
+        // 使用默认数据
+        window.brandMap = {
+          'AOC线缆': ['HG GENUINE', 'INNOLIGHT', 'Hisense', 'WTD'],
+          '光模块': ['HG GENUINE', 'INNOLIGHT', 'Hisense', 'Huawei', 'Finisar', 'WTD'],
+          '内存': ['Samsung', 'Hynix', 'Micron'],
+          '硬盘': ['Seagate', 'Western Digital', 'Intel', 'Samsung', 'Micron', 'KIOXIA', 'Solidigm'],
+          'CPU': ['Intel']
+        };
+        window.pnDataMap = {
+          '光模块': {
+            'HG GENUINE': ['MTRS-01X11-G', 'MQD-12F1C', 'MQD-56F2C', 'MTRQ-4S101'],
+            'INNOLIGHT': ['T-OL8CNT-N00', 'T-DQ8FNS-N01', 'T-DQ8FNS-N00', 'TR-FC13T-N00', 'TR-ZC13T-N00', 'T-DQ4CNT-N00', 'TR-FC13R-N00'],
+            'WTD': ['RTXM500-410', 'RTXM420-431', 'RTXM500-560', 'RTXM600-230', 'OEO-M100-73-13-Q28', 'OEO-M100-62-13-Q28', 'RTXM228-551', 'RTXM228-401', 'RTXM290-806', 'RTXM420-550'],
+            'Finisar': ['FTCD8613E1PCM', 'FTLX8574D3BCL', 'FTCD8613E2PCM-BY', 'FTCE4717E1PCB-BY', 'FTLX1475D3BCL'],
+            'Huawei': ['OM3680SX200', 'OM3660FX102'],
+            'Hisense': ['LMQ8811-PC+', 'LMS3821L-PCS', 'LTF8502-BC+', 'LMS3826-PC+', 'LTA1328-PC+'],
+            'Crealights': ['B5CLOS800SR8'],
+            'H3C': ['SFP-XG-LX-SM1310']
+          },
+          'AOC线缆': {
+            'HG GENUINE': ['ATRP-B005', 'ATRP-B007', 'ATRP-B010', 'ATRP-B020'],
+            'INNOLIGHT': ['C-PD2FNM005-N00', 'C-PD2FNM007-N00', 'C-PD2FNM010-N00'],
+            'Hisense': ['DMM8211-DC05', 'DMM8211-DC07', 'DMM8211-DC10', 'DMM8211-DC20'],
+            'WTD': ['RTXM520-105', 'RTXM520-107', 'RTXM520-110', 'RTXM520-120', 'RTXM500-905', 'RTXM500-910']
+          }
+        };
+        window.diskPnList = [
+          { brand: "Intel", pn: "SSDPF2KX076T1", Type: "NVMe/7.68TB" },
+          { brand: "Intel", pn: "SSDPF2KX038T1", Type: "NVMe/3.84TB" },
+          { brand: "KIOXIA", pn: "KCD81RUG3T84", Type: "NVMe/3.84TB" },
+          { brand: "KIOXIA", pn: "KCD81RUG7T68", Type: "NVMe/7.68TB" },
+          { brand: "KIOXIA", pn: "KCD81RUG1T92", Type: "NVMe/1.92TB" },
+          { brand: "Samsung", pn: "MZQL21T9HCJR-00B7C", Type: "NVMe/1.92TB" },
+          { brand: "Samsung", pn: "MZQL23T8HCLS-00B7C", Type: "NVMe/3.84TB" },
+          { brand: "Seagate", pn: "ST20000NM007D", Type: "HDD/20TB" },
+          { brand: "Seagate", pn: "ST8000NM017B", Type: "HDD/8TB" },
+          { brand: "Union Memory", pn: "UP2A63T8SD004LX", Type: "NVMe/3.84TB" },
+          { brand: "Western Digital", pn: "WUH722020BLE604", Type: "HDD/20TB" },
+          { brand: "Western Digital", pn: "HUS728T8TALE6L4", Type: "HDD/8TB" }
+        ];
+        updateBrandOptions(typeSelect.value);
+      }
+    }
+
+    // 页面加载时加载配件数据
+    document.addEventListener('DOMContentLoaded', loadPartsData);
   </script>
 </head>
 
@@ -247,22 +327,6 @@ function updateBrandOptions(type) {
   updatePnOptions(type, newBrand.value, newPnOptions);
   updatePnOptions(type, oldBrand.value, oldPnOptions);
 }
-
-// 新增：硬盘PN列表
-const diskPnList = [
-  { brand: "Intel", pn: "SSDPF2KX076T1", Type: "NVMe/7.68TB" },
-  { brand: "Intel", pn: "SSDPF2KX038T1", Type: "NVMe/3.84TB" },
-  { brand: "KIOXIA", pn: "KCD81RUG3T84", Type: "NVMe/3.84TB" },
-  { brand: "KIOXIA", pn: "KCD81RUG7T68", Type: "NVMe/7.68TB" },
-  { brand: "KIOXIA", pn: "KCD81RUG1T92", Type: "NVMe/1.92TB" },
-  { brand: "Samsung", pn: "MZQL21T9HCJR-00B7C", Type: "NVMe/1.92TB" },
-  { brand: "Samsung", pn: "MZQL23T8HCLS-00B7C", Type: "NVMe/3.84TB" },
-  { brand: "Seagate", pn: "ST20000NM007D", Type: "HDD/20TB" },
-  { brand: "Seagate", pn: "ST8000NM017B", Type: "HDD/8TB" },
-  { brand: "Union Memory", pn: "UP2A63T8SD004LX", Type: "NVMe/3.84TB" },
-  { brand: "Western Digital", pn: "WUH722020BLE604", Type: "HDD/20TB" },
-  { brand: "Western Digital", pn: "HUS728T8TALE6L4", Type: "HDD/8TB" }
-];
 
 // 生成硬盘PN下拉选项（只显示当前品牌的PN，首项为请选择硬盘PN，显示pn+type）
 function renderDiskPnOptions(datalist, brand) {
