@@ -49,37 +49,113 @@ function showToast(msg, type = "primary") {
   setTimeout(() => toast.remove(), 1200);
 }
 
-function updateBrandOptions(type) {
-  const brands = window.partsData.brandMap[type];
-  const section = document.getElementById("brandSection");
-  if (brands) {
-    newBrand.innerHTML = "<option selected>请选择</option>" + brands.map((b) => `<option value="${b}">${b}</option>`).join("");
-    oldBrand.innerHTML = "<option selected>请选择</option>" + brands.map((b) => `<option value="${b}">${b}</option>`).join("");
-    section.classList.remove("d-none");
-
-    // 如果是硬盘类型，需要立即更新PN选项
-    if (type === "硬盘") {
-      const newList = window.partsData.diskPnList.filter((item) => item.brand === newBrand.value);
-      const oldList = window.partsData.diskPnList.filter((item) => item.brand === oldBrand.value);
-
-      const newPnSelect = document.getElementById("newPNSelect");
-      const oldPnSelect = document.getElementById("oldPNSelect");
-
-      if (newPnSelect) {
-        newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + newList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-      }
-      if (oldPnSelect) {
-        oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + oldList.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-      }
-    }
-  } else {
-    newBrand.innerHTML = "";
-    oldBrand.innerHTML = "";
-    section.classList.add("d-none");
+function updateBrandOptions() {
+  if (!window.partsData || !window.partsData.brandMap) {
+    console.warn('配件数据尚未加载完成');
+    return;
   }
-  updatePnOptions(type, newBrand.value, newPnOptions);
-  updatePnOptions(type, oldBrand.value, oldPnOptions);
+  
+  const brandMap = window.partsData.brandMap;
+  const type = document.getElementById('type').value;
+  
+  if (type && brandMap[type]) {
+    const newBrandSelect = document.getElementById('newBrand');
+    const oldBrandSelect = document.getElementById('oldBrand');
+    
+    // 清空现有选项
+    newBrandSelect.innerHTML = '';
+    oldBrandSelect.innerHTML = '';
+    
+    // 添加新选项
+    brandMap[type].forEach(brand => {
+      newBrandSelect.add(new Option(brand, brand));
+      oldBrandSelect.add(new Option(brand, brand));
+    });
+  }
 }
+
+// 修改数据加载检查函数
+function checkDataLoaded() {
+  if (!window.partsData || !window.partsData.brandMap) {
+    console.warn('等待配件数据加载...');
+    setTimeout(checkDataLoaded, 100);
+    return;
+  }
+  
+  // 数据加载完成后初始化界面
+  initializeUI();
+}
+
+// 添加初始化界面函数
+function initializeUI() {
+  // 恢复表单数据
+  loadFormData();
+  
+  // 绑定事件
+  bindEvents();
+}
+
+// 添加事件绑定函数
+function bindEvents() {
+  if (typeSelect) {
+    typeSelect.addEventListener("change", () => {
+      const type = typeSelect.value;
+      const isOptical = type === "光模块";
+      if (serverSNRow) serverSNRow.classList.toggle("d-none", isOptical);
+      if (switchInfoRow) switchInfoRow.classList.toggle("d-none", !isOptical);
+      updateBrandOptions();
+      update();
+      switchPnInput(type === "硬盘" || type === "CPU");
+    });
+  }
+
+  if (newBrand && oldBrand) {
+    [newBrand, oldBrand].forEach((select, index) => {
+      select.addEventListener("change", () => {
+        const type = typeSelect.value;
+        const datalist = index === 0 ? newPnOptions : oldPnOptions;
+        updatePnOptions(type, select.value, datalist);
+        // 如果是硬盘类型，需要更新select的选项
+        if (type === "硬盘") {
+          const selectId = index === 0 ? "newPNSelect" : "oldPNSelect";
+          const pnSelect = document.getElementById(selectId);
+          if (pnSelect) {
+            const list = window.partsData.diskPnList.filter((item) => item.brand === select.value);
+            pnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
+          }
+        }
+        update();
+      });
+    });
+  }
+
+  [orderNo, serverSN, switchLocation, portNo, newPN, newSN, oldPN, oldSN].forEach((el) => el.addEventListener("input", update));
+
+  if (copyBtn)
+    copyBtn.addEventListener("click", () => {
+      const text = preview.innerText.trim();
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          showToast("已复制到剪贴板");
+        })
+        .catch(() => {
+          showToast("复制失败，请手动复制", "danger");
+        });
+    });
+}
+
+// 修改页面加载事件
+document.addEventListener('DOMContentLoaded', () => {
+  // 检查数据是否已加载
+  if (window.partsData && window.partsData.brandMap) {
+    initializeUI();
+  } else {
+    // 等待数据加载完成
+    window.addEventListener('partsDataLoaded', initializeUI);
+    checkDataLoaded();
+  }
+});
 
 // 生成硬盘PN下拉选项
 function renderDiskPnOptions(datalist, brand) {
@@ -278,53 +354,6 @@ function update() {
   hljs.highlightElement(preview);
   saveFormData();
 }
-
-// 注册事件
-if (typeSelect)
-  typeSelect.addEventListener("change", () => {
-    const type = typeSelect.value;
-    const isOptical = type === "光模块";
-    if (serverSNRow) serverSNRow.classList.toggle("d-none", isOptical);
-    if (switchInfoRow) switchInfoRow.classList.toggle("d-none", !isOptical);
-    updateBrandOptions(type);
-    update();
-    switchPnInput(type === "硬盘" || type === "CPU");
-  });
-
-if (newBrand && oldBrand) {
-  [newBrand, oldBrand].forEach((select, index) => {
-    select.addEventListener("change", () => {
-      const type = typeSelect.value;
-      const datalist = index === 0 ? newPnOptions : oldPnOptions;
-      updatePnOptions(type, select.value, datalist);
-      // 如果是硬盘类型，需要更新select的选项
-      if (type === "硬盘") {
-        const selectId = index === 0 ? "newPNSelect" : "oldPNSelect";
-        const pnSelect = document.getElementById(selectId);
-        if (pnSelect) {
-          const list = window.partsData.diskPnList.filter((item) => item.brand === select.value);
-          pnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map((item) => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join("");
-        }
-      }
-      update();
-    });
-  });
-}
-
-[orderNo, serverSN, switchLocation, portNo, newPN, newSN, oldPN, oldSN].forEach((el) => el.addEventListener("input", update));
-
-if (copyBtn)
-  copyBtn.addEventListener("click", () => {
-    const text = preview.innerText.trim();
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        showToast("已复制到剪贴板");
-      })
-      .catch(() => {
-        showToast("复制失败，请手动复制", "danger");
-      });
-  });
 
 function sendToFeishu() {
   const type = typeSelect.value;
