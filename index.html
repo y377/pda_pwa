@@ -118,9 +118,30 @@
   <script>
   window.partsDataReady = false;
   (async function() {
-    const res = await fetch('https://pn.jsjs.net/pn');
-    window.partsData = await res.json();
-    window.partsDataReady = true;
+    try {
+      // 优先用 Service Worker 缓存
+      const res = await fetch('https://pn.jsjs.net/pn', {cache: 'force-cache'});
+      window.partsData = await res.json();
+      window.partsDataReady = true;
+      window.dispatchEvent(new Event('partsDataLoaded'));
+    } catch (error) {
+      console.error('加载配件数据失败:', error);
+      const toast = document.createElement('div');
+      toast.className = 'toast align-items-center text-white bg-danger border-0';
+      toast.setAttribute('role', 'alert');
+      toast.setAttribute('aria-live', 'assertive');
+      toast.setAttribute('aria-atomic', 'true');
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+            加载配件数据失败，请刷新页面重试
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      `;
+      document.getElementById('toastContainer').appendChild(toast);
+      new bootstrap.Toast(toast).show();
+    }
   })();
   </script>
   <script src="/pwa.js"></script>
