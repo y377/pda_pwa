@@ -1,8 +1,8 @@
 {
-  "name": "配件扫码录入",
-  "short_name": "配件录入",
-  "description": "配件扫码录入系统",
-  "start_url": "/pda_pwa/index.html",
+  "name": "PDA配件更换助手",
+  "short_name": "PDA助手",
+  "description": "快速生成配件更换文本",
+  "start_url": "/pda_pwa/",
   "scope": "/pda_pwa/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -48,5 +48,7 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
-} 
+  ],
+  "version": "2.2.2",
+  "changelog": "1. 优化更新提示样式，使用 Bootstrap Offcanvas\n2. 改进更新日志显示\n3. 修复更新提示显示问题"
+}
