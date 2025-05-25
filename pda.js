@@ -105,16 +105,17 @@ async function loadFormData() {
     typeSelect.value = typeVal;
     updateBrandOptions(); // 先渲染品牌下拉
 
-    setTimeout(() => {
-      // 2. 恢复品牌
-      const newBrandVal = localStorage.getItem('pda_newBrand') || '请选择';
-      const oldBrandVal = localStorage.getItem('pda_oldBrand') || '请选择';
-      newBrand.value = newBrandVal;
-      oldBrand.value = oldBrandVal;
-      newBrand.dispatchEvent(new Event('change'));
-      oldBrand.dispatchEvent(new Event('change'));
+    // 2. 递归检测品牌下拉框选项是否生成
+    function restoreBrands() {
+      if (newBrand.options.length > 0 && oldBrand.options.length > 0) {
+        // 选项已生成，可以赋值
+        const newBrandVal = localStorage.getItem('pda_newBrand') || '请选择';
+        const oldBrandVal = localStorage.getItem('pda_oldBrand') || '请选择';
+        newBrand.value = newBrandVal;
+        oldBrand.value = oldBrandVal;
+        newBrand.dispatchEvent(new Event('change'));
+        oldBrand.dispatchEvent(new Event('change'));
 
-      setTimeout(() => {
         // 3. 恢复输入框
         [
           [orderNo, 'pda_orderNo'],
@@ -164,8 +165,14 @@ async function loadFormData() {
           restoring = false;
           update();
         }
-      }, 100);
-    }, 100);
+      } else {
+        // 选项还没生成，继续等待
+        setTimeout(restoreBrands, 100);
+      }
+    }
+
+    // 开始递归检测
+    restoreBrands();
   } catch (e) {
     restoring = false;
     update();
