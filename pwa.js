@@ -8,9 +8,9 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/pda_pwa/sw.js')
       .then(registration => {
-        // 检查更新
+      // 检查更新
         registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
+        const newWorker = registration.installing;
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               checkUpdate();
@@ -98,3 +98,8 @@ async function checkUpdate() {
     return false;
   }
 }
+
+// 保证每次页面加载都检测新版本
+window.addEventListener('load', () => {
+  checkUpdate();
+});
