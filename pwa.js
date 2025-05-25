@@ -1,5 +1,5 @@
 // 版本控制
-const VERSION = '2.2.1';
+const VERSION = '2.2.2';
 const CACHE_NAME = `pda-cache-${VERSION}`;
 const PARTS_DATA_CACHE = `parts-data-${VERSION}`;
 
@@ -13,7 +13,7 @@ if ('serviceWorker' in navigator) {
           const newWorker = registration.installing;
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showUpdateToast();
+              checkUpdate();
             }
           });
         });
@@ -22,29 +22,79 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// 弹窗提示用户有新版本，点击按钮刷新
-function showUpdateToast() {
-  if (document.getElementById('pwa-update-toast')) return; // 防止重复弹出
-  const toast = document.createElement('div');
-  toast.id = 'pwa-update-toast';
-  toast.style.position = 'fixed';
-  toast.style.top = '50%';
-  toast.style.left = '50%';
-  toast.style.transform = 'translate(-50%, -50%)';
-  toast.style.background = '#0d6efd';
-  toast.style.color = '#fff';
-  toast.style.padding = '2rem 1.5rem 1.5rem 1.5rem';
-  toast.style.borderRadius = '1rem';
-  toast.style.boxShadow = '0 4px 24px rgba(0,0,0,0.18)';
-  toast.style.zIndex = '99999';
-  toast.style.textAlign = 'center';
-  toast.innerHTML = `
-    <div style="font-size:1.2rem;font-weight:bold;margin-bottom:0.5rem;">发现新版本</div>
-    <div style="margin-bottom:1rem;">点击下方按钮立即更新以体验最新功能</div>
-    <button id="pwa-update-btn" style="background:#fff;color:#0d6efd;border:none;padding:0.5rem 1.5rem;border-radius:0.5rem;font-weight:bold;font-size:1rem;cursor:pointer;">更新</button>
-  `;
-  document.body.appendChild(toast);
-  document.getElementById('pwa-update-btn').onclick = () => {
-    window.location.reload();
-  };
+// 检查更新
+async function checkUpdate() {
+  try {
+    const response = await fetch('/pda_pwa/manifest.json');
+    const manifest = await response.json();
+    const currentVersion = localStorage.getItem('app-version');
+    
+    if (manifest.version !== currentVersion) {
+      // 获取更新日志
+      const changelog = manifest.changelog || '优化性能和用户体验';
+      
+      // 创建 Offcanvas 更新提示
+      const updateOffcanvas = document.createElement('div');
+      updateOffcanvas.className = 'offcanvas offcanvas-bottom show';
+      updateOffcanvas.setAttribute('tabindex', '-1');
+      updateOffcanvas.setAttribute('aria-labelledby', 'updateOffcanvasLabel');
+      updateOffcanvas.innerHTML = `
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="updateOffcanvasLabel">发现新版本 ${manifest.version}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class="changelog mb-3">
+            <h6 class="text-muted mb-2">更新内容：</h6>
+            <div class="ps-3">${changelog.replace(/\n/g, '<br>')}</div>
+          </div>
+          <button class="btn btn-primary w-100 update-btn">立即更新</button>
+        </div>
+      `;
+      
+      // 添加样式
+      const style = document.createElement('style');
+      style.textContent = `
+        .offcanvas-bottom {
+          height: auto;
+          max-height: 50vh;
+        }
+        .offcanvas-header {
+          border-bottom: 1px solid #dee2e6;
+        }
+        .changelog {
+          font-size: 0.9rem;
+          line-height: 1.5;
+        }
+        .update-btn {
+          font-weight: 500;
+        }
+      `;
+      document.head.appendChild(style);
+      document.body.appendChild(updateOffcanvas);
+      
+      // 添加遮罩
+      const backdrop = document.createElement('div');
+      backdrop.className = 'offcanvas-backdrop fade show';
+      document.body.appendChild(backdrop);
+      
+      // 点击更新按钮
+      updateOffcanvas.querySelector('.update-btn').onclick = () => {
+        localStorage.setItem('app-version', manifest.version);
+        window.location.reload();
+      };
+      
+      // 点击关闭按钮
+      updateOffcanvas.querySelector('.btn-close').onclick = () => {
+        updateOffcanvas.remove();
+        backdrop.remove();
+      };
+      
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('检查更新失败:', error);
+    return false;
+  }
 }
