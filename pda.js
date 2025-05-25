@@ -86,10 +86,12 @@ function waitForData() {
 }
 
 // 修改页面加载事件
+// 先渲染品牌下拉，再绑定事件，最后恢复表单
+
 document.addEventListener('DOMContentLoaded', async () => {
-  // 等待数据加载完成
   await waitForData();
-  // 初始化表单
+  updateBrandOptions();
+  bindEvents();
   loadFormData();
 });
 
@@ -173,7 +175,7 @@ function bindEvents() {
       if (switchInfoRow) switchInfoRow.classList.toggle("d-none", !isOptical);
       await updateBrandOptions();
       update();
-      switchPnInput(type === "硬盘" || type === "CPU");
+      switchPnInput(type); // 传type字符串
     });
   }
 
