@@ -79,6 +79,22 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   sendDebugInfo('fetch', { path: url.pathname });
 
+  // 对于 Cloudflare Worker 数据接口，cache-first
+  if (url.hostname === 'pn.jsjs.net' && url.pathname === '/pn') {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(cache =>
+        cache.match(event.request).then(cachedResponse => {
+          if (cachedResponse) return cachedResponse;
+          return fetch(event.request).then(networkResponse => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        })
+      )
+    );
+    return;
+  }
+
   // 对于 HTML 和 JS 文件，使用 network-first 策略
   if (url.pathname.endsWith('.html') || url.pathname.endsWith('.js')) {
     sendDebugInfo('fetch', { path: url.pathname, strategy: 'network-first' });
