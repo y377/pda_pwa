@@ -1,4 +1,16 @@
-const CACHE_NAME = 'pda-cache-v1';
+// 版本控制
+const VERSION = '2.1.0';  // 主版本.次版本.修订版本
+const CACHE_NAME = `pda-cache-${VERSION}`;
+const PARTS_DATA_CACHE = `parts-data-${VERSION}`;
+
+// 安全配置
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': "default-src 'self' https://lib.baomitu.com; script-src 'self' 'unsafe-inline' https://lib.baomitu.com; style-src 'self' 'unsafe-inline' https://lib.baomitu.com; img-src 'self' data: https:; connect-src 'self' https://test.jsjs.net",
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block'
+};
+
 const urlsToCache = [
   '/pda_pwa/index.html',
   '/pda_pwa/manifest.json',
@@ -73,7 +85,7 @@ self.addEventListener('install', event => {
       caches.open(CACHE_NAME)
         .then(cache => cache.addAll(urlsToCache)),
       // 缓存配件数据
-      caches.open('parts-data-v1')
+      caches.open(PARTS_DATA_CACHE)
         .then(cache => cache.put('/pda_pwa/parts-data', new Response(JSON.stringify(partsData))))
     ]).then(() => self.skipWaiting())
   );
@@ -88,7 +100,7 @@ self.addEventListener('activate', event => {
       caches.keys().then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            if (cacheName !== CACHE_NAME && cacheName !== 'parts-data-v1') {
+            if (!cacheName.startsWith('pda-cache-') || cacheName !== CACHE_NAME) {
               return caches.delete(cacheName);
             }
           })
@@ -120,13 +132,35 @@ self.addEventListener('fetch', event => {
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
-            const responseToCache = response.clone();
+
+            // 添加安全头
+            const headers = new Headers(response.headers);
+            Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
+              headers.set(key, value);
+            });
+
+            const responseToCache = new Response(response.body, {
+              status: response.status,
+              statusText: response.statusText,
+              headers: headers
+            });
+
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);
               });
-            return response;
+
+            return responseToCache;
           });
       })
   );
+});
+
+// 错误处理
+self.addEventListener('error', event => {
+  console.error('Service Worker 错误:', event.error);
+});
+
+self.addEventListener('unhandledrejection', event => {
+  console.error('未处理的 Promise 拒绝:', event.reason);
 }); 
