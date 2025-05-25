@@ -198,7 +198,7 @@
           if (newBrand) newBrand.innerHTML = '<option selected>请选择</option>' + brands.map(b => `<option value="${b}">${b}</option>`).join('');
           if (oldBrand) oldBrand.innerHTML = '<option selected>请选择</option>' + brands.map(b => `<option value="${b}">${b}</option>`).join('');
           if (section) section.classList.remove('d-none');
-          // 如果是硬盘类型，需要立即更新PN选项
+          // 只在硬盘类型时处理 diskPnList
           if (type === '硬盘') {
             const newList = partsData.diskPnList.filter(item => item.brand === (newBrand ? newBrand.value : ''));
             const oldList = partsData.diskPnList.filter(item => item.brand === (oldBrand ? oldBrand.value : ''));
@@ -209,6 +209,19 @@
             }
             if (oldPnSelect) {
               oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + oldList.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
+            }
+          }
+          // 只在CPU类型时处理 cpuPnList
+          if (type === 'CPU') {
+            const newList = partsData.cpuPnList.filter(item => item.brand === (newBrand ? newBrand.value : ''));
+            const oldList = partsData.cpuPnList.filter(item => item.brand === (oldBrand ? oldBrand.value : ''));
+            const newPnSelect = document.getElementById('newPNSelect');
+            const oldPnSelect = document.getElementById('oldPNSelect');
+            if (newPnSelect) {
+              newPnSelect.innerHTML = `<option value="">请选择CPU的PN</option>` + newList.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
+            }
+            if (oldPnSelect) {
+              oldPnSelect.innerHTML = `<option value="">请选择CPU的PN</option>` + oldList.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
             }
           }
         } else {
@@ -240,7 +253,7 @@
           const select = document.getElementById(isNew ? 'newPNSelect' : 'oldPNSelect');
           if (select) {
             const list = partsData.cpuPnList.filter(item => item.brand === brand);
-            select.innerHTML = `<option value="">请选择CPU型号</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
+            select.innerHTML = `<option value="">请选择CPU的PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
           }
         } else {
           const list = (partsData.pnDataMap[type] && partsData.pnDataMap[type][brand]) || [];
@@ -257,7 +270,7 @@
       // 生成CPU PN下拉选项
       function renderCpuPnOptions(datalist, brand) {
         const list = partsData.cpuPnList.filter(item => item.brand === brand);
-        datalist.innerHTML = `<option value="">请选择CPU型号</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
+        datalist.innerHTML = `<option value="">请选择CPU的PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
       }
 
       function formatSamsungMemoryPn(pn) {
@@ -379,7 +392,7 @@ ${isOptical ? '位置：' + positionText : positionText}
               newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
             } else {
               const list = partsData.cpuPnList.filter(item => item.brand === brand);
-              newPnSelect.innerHTML = `<option value="">请选择CPU型号</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
+              newPnSelect.innerHTML = `<option value="">请选择CPU的PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
             }
             newPnSelect.addEventListener('change', update);
             if (newPN) newPN.style.display = 'none';
@@ -407,7 +420,7 @@ ${isOptical ? '位置：' + positionText : positionText}
               oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
             } else {
               const list = partsData.cpuPnList.filter(item => item.brand === brand);
-              oldPnSelect.innerHTML = `<option value="">请选择CPU型号</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
+              oldPnSelect.innerHTML = `<option value="">请选择CPU的PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
             }
             oldPnSelect.addEventListener('change', update);
             if (oldPN) oldPN.style.display = 'none';
@@ -766,7 +779,7 @@ function updateBrandOptions(type) {
     if (newBrand) newBrand.innerHTML = '<option selected>请选择</option>' + brands.map(b => `<option value="${b}">${b}</option>`).join('');
     if (oldBrand) oldBrand.innerHTML = '<option selected>请选择</option>' + brands.map(b => `<option value="${b}">${b}</option>`).join('');
     if (section) section.classList.remove('d-none');
-    // 如果是硬盘类型，需要立即更新PN选项
+    // 只在硬盘类型时处理 diskPnList
     if (type === '硬盘') {
       const newList = partsData.diskPnList.filter(item => item.brand === (newBrand ? newBrand.value : ''));
       const oldList = partsData.diskPnList.filter(item => item.brand === (oldBrand ? oldBrand.value : ''));
@@ -777,6 +790,19 @@ function updateBrandOptions(type) {
       }
       if (oldPnSelect) {
         oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + oldList.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
+      }
+    }
+    // 只在CPU类型时处理 cpuPnList
+    if (type === 'CPU') {
+      const newList = partsData.cpuPnList.filter(item => item.brand === (newBrand ? newBrand.value : ''));
+      const oldList = partsData.cpuPnList.filter(item => item.brand === (oldBrand ? oldBrand.value : ''));
+      const newPnSelect = document.getElementById('newPNSelect');
+      const oldPnSelect = document.getElementById('oldPNSelect');
+      if (newPnSelect) {
+        newPnSelect.innerHTML = `<option value="">请选择CPU的PN</option>` + newList.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
+      }
+      if (oldPnSelect) {
+        oldPnSelect.innerHTML = `<option value="">请选择CPU的PN</option>` + oldList.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
       }
     }
   } else {
@@ -794,101 +820,11 @@ function renderDiskPnOptions(datalist, brand) {
   datalist.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
 }
 
-// 新增：切换PN输入框为select或input
-    function switchPnInput(type) {
-      const isDisk = type === '硬盘';
-      const isCpu = type === 'CPU';
-      
-  // 新件PN
-  if (!newPN) return;
-  const newPnParent = newPN.parentElement;
-  let newPnSelect = document.getElementById('newPNSelect');
-      if (isDisk || isCpu) {
-    if (!newPnSelect && newPnParent) {
-      newPnSelect = document.createElement('select');
-      newPnSelect.id = 'newPNSelect';
-      newPnSelect.className = newPN.className;
-      const brand = newBrand ? newBrand.value : '';
-          if (isDisk) {
-      const list = partsData.diskPnList.filter(item => item.brand === brand);
-      newPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
-          } else {
-            const list = partsData.cpuPnList.filter(item => item.brand === brand);
-            newPnSelect.innerHTML = `<option value="">请选择CPU型号</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
-          }
-      newPnSelect.addEventListener('change', update);
-      if (newPN) newPN.style.display = 'none';
-      newPnParent.appendChild(newPnSelect);
-    }
-    if (newPN) newPN.style.display = 'none';
-    if (newPnSelect) newPnSelect.style.display = '';
-  } else {
-    if (newPnSelect) newPnSelect.style.display = 'none';
-    if (newPN) newPN.style.display = '';
-  }
-
-  // 旧件PN
-  if (!oldPN) return;
-  const oldPnParent = oldPN.parentElement;
-  let oldPnSelect = document.getElementById('oldPNSelect');
-      if (isDisk || isCpu) {
-    if (!oldPnSelect && oldPnParent) {
-      oldPnSelect = document.createElement('select');
-      oldPnSelect.id = 'oldPNSelect';
-      oldPnSelect.className = oldPN.className;
-      const brand = oldBrand ? oldBrand.value : '';
-          if (isDisk) {
-      const list = partsData.diskPnList.filter(item => item.brand === brand);
-      oldPnSelect.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
-          } else {
-            const list = partsData.cpuPnList.filter(item => item.brand === brand);
-            oldPnSelect.innerHTML = `<option value="">请选择CPU型号</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
-          }
-      oldPnSelect.addEventListener('change', update);
-      if (oldPN) oldPN.style.display = 'none';
-      oldPnParent.appendChild(oldPnSelect);
-    }
-    if (oldPN) oldPN.style.display = 'none';
-    if (oldPnSelect) oldPnSelect.style.display = '';
-  } else {
-    if (oldPnSelect) oldPnSelect.style.display = 'none';
-    if (oldPN) oldPN.style.display = '';
-  }
+// 生成CPU PN下拉选项
+function renderCpuPnOptions(datalist, brand) {
+  const list = partsData.cpuPnList.filter(item => item.brand === brand);
+  datalist.innerHTML = `<option value="">请选择CPU的PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
 }
-
-// 修改updatePnOptions函数
-function updatePnOptions(type, brand, datalist) {
-  if (restoring) return;
-  if (!datalist) return;
-  if (type === '硬盘') {
-    renderDiskPnOptions(datalist, brand);
-    // 同步select
-    const isNew = datalist === newPnOptions;
-    const select = document.getElementById(isNew ? 'newPNSelect' : 'oldPNSelect');
-    if (select) {
-      const list = partsData.diskPnList.filter(item => item.brand === brand);
-      select.innerHTML = `<option value="">请选择硬盘PN</option>` + list.map(item => `<option value="${item.pn}">${item.pn}【${item.Type}】</option>`).join('');
-    }
-      } else if (type === 'CPU') {
-        renderCpuPnOptions(datalist, brand);
-        // 同步select
-        const isNew = datalist === newPnOptions;
-        const select = document.getElementById(isNew ? 'newPNSelect' : 'oldPNSelect');
-        if (select) {
-          const list = partsData.cpuPnList.filter(item => item.brand === brand);
-          select.innerHTML = `<option value="">请选择CPU型号</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
-        }
-  } else {
-    const list = (pnDataMap[type] && pnDataMap[type][brand]) || [];
-    datalist.innerHTML = list.map(pn => `<option value="${pn}">`).join('');
-  }
-}
-
-    // 生成CPU PN下拉选项
-    function renderCpuPnOptions(datalist, brand) {
-      const list = partsData.cpuPnList.filter(item => item.brand === brand);
-      datalist.innerHTML = `<option value="">请选择CPU型号</option>` + list.map(item => `<option value="${item.pn}">${item.pn}</option>`).join('');
-    }
 
 function formatSamsungMemoryPn(pn) {
   const index = pn.indexOf('M');
