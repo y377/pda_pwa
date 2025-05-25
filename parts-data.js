@@ -1,4 +1,4 @@
-window.partsData = {
+self.partsData = {
   brandMap: {
     'AOC线缆': ['HG GENUINE', 'INNOLIGHT', 'Hisense', 'WTD'],
     '光模块': ['HG GENUINE', 'INNOLIGHT', 'Hisense', 'Huawei', 'Finisar', 'WTD'],
