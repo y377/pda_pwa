@@ -1,5 +1,5 @@
 // 版本控制
-const VERSION = '2.2.0';  // 主版本.次版本.修订版本
+const VERSION = '2.2.0';  // 修改版本号
 const CACHE_NAME = `pda-cache-${VERSION}`;
 const PARTS_DATA_CACHE = `parts-data-${VERSION}`;
 
@@ -78,29 +78,46 @@ const partsData = {
   ]
 };
 
+// 安装事件
 self.addEventListener('install', event => {
+  console.log('Service Worker 安装中...', VERSION);
   event.waitUntil(
     Promise.all([
       // 缓存静态资源
       caches.open(CACHE_NAME)
-        .then(cache => cache.addAll(urlsToCache)),
+        .then(cache => {
+          console.log('缓存静态资源...');
+          return cache.addAll(urlsToCache);
+        }),
       // 缓存配件数据
       caches.open(PARTS_DATA_CACHE)
-        .then(cache => cache.put('/pda_pwa/parts-data', new Response(JSON.stringify(partsData))))
-    ]).then(() => self.skipWaiting())
+        .then(cache => {
+          console.log('缓存配件数据...');
+          return cache.put('/pda_pwa/parts-data', new Response(JSON.stringify(partsData)));
+        })
+    ]).then(() => {
+      console.log('Service Worker 安装完成，准备激活');
+      return self.skipWaiting();
+    })
   );
 });
 
+// 激活事件
 self.addEventListener('activate', event => {
+  console.log('Service Worker 激活中...', VERSION);
   event.waitUntil(
     Promise.all([
       // 立即接管所有客户端
-      self.clients.claim(),
+      self.clients.claim().then(() => {
+        console.log('Service Worker 已接管所有客户端');
+      }),
       // 清理旧缓存
       caches.keys().then(cacheNames => {
+        console.log('清理旧缓存...', cacheNames);
         return Promise.all(
           cacheNames.map(cacheName => {
             if (!cacheName.startsWith('pda-cache-') || cacheName !== CACHE_NAME) {
+              console.log('删除旧缓存:', cacheName);
               return caches.delete(cacheName);
             }
           })
@@ -127,31 +144,22 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request)
-          .then(response => {
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // 添加安全头
-            const headers = new Headers(response.headers);
-            Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
-              headers.set(key, value);
+        return fetch(event.request).then(response => {
+          // 检查是否是有效的响应
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+          
+          // 克隆响应，因为响应流只能使用一次
+          const responseToCache = response.clone();
+          
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseToCache);
             });
-
-            const responseToCache = new Response(response.body, {
-              status: response.status,
-              statusText: response.statusText,
-              headers: headers
-            });
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return responseToCache;
-          });
+            
+          return response;
+        });
       })
   );
 });
