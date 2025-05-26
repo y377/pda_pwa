@@ -24,97 +24,112 @@
 </head>
 
 <body class="container mb-5">
-  <h5 class="text-center pt-2"><i class="bi bi-upc-scan px-2"></i>PDA扫码助手</h5>
-  <div id="toastContainer" class="position-fixed top-0 start-50 translate-middle-x" style="z-index: 9999;"></div>
-
-  <div class="row my-3">
-    <div class="col">
-      <label class="form-label fw-bold" for="orderNo">单号：<span id="orderNoDisplay" class="text-primary font-monospace"></span></label>
-      <input id="orderNo" type="text" class="form-control" placeholder="请粘贴单号">
-    </div>
-    <div class="col text-end">
-      <label class="form-label fw-bold" for="type">配件类型：</label>
-      <select id="type" class="form-select">
-        <option selected>请选择</option>
-        <option value="CPU">CPU</option>
-        <option value="内存">内存</option>
-        <option value="硬盘">硬盘</option>
-        <option value="光模块">光模块</option>
-        <option value="AOC线缆">AOC线缆</option>
-        <option value="主板">主板</option>
-        <option value="电源">电源</option>
-        <option value="网卡">网卡</option>
-        <option value="交换机">交换机</option>
-      </select>
+  <!-- 登录界面 -->
+  <div id="loginContainer" class="text-center py-5">
+    <h4 class="mb-4"><i class="bi bi-upc-scan px-2"></i>PDA扫码助手</h4>
+    <div class="card mx-auto" style="max-width: 400px;">
+      <div class="card-body">
+        <h5 class="card-title mb-4">请使用飞书扫码登录</h5>
+        <div id="login_container"></div>
+      </div>
     </div>
   </div>
 
-  <div id="switchInfoRow" class="row my-3 d-none">
-    <div class="col-8 pe-1">
-      <label class="form-label" for="switchLocation">交换机位置：</label>
-      <input id="switchLocation" type="text" class="form-control" placeholder="">
+  <!-- 主界面（默认隐藏） -->
+  <div id="mainContainer" class="d-none">
+    <h5 class="text-center pt-2"><i class="bi bi-upc-scan px-2"></i>PDA扫码助手</h5>
+    <div id="toastContainer" class="position-fixed top-0 start-50 translate-middle-x" style="z-index: 9999;"></div>
+
+    <div class="row my-3">
+      <div class="col">
+        <label class="form-label fw-bold" for="orderNo">单号：<span id="orderNoDisplay" class="text-primary font-monospace"></span></label>
+        <input id="orderNo" type="text" class="form-control" placeholder="请粘贴单号">
+      </div>
+      <div class="col text-end">
+        <label class="form-label fw-bold" for="type">配件类型：</label>
+        <select id="type" class="form-select">
+          <option selected>请选择</option>
+          <option value="CPU">CPU</option>
+          <option value="内存">内存</option>
+          <option value="硬盘">硬盘</option>
+          <option value="光模块">光模块</option>
+          <option value="AOC线缆">AOC线缆</option>
+          <option value="主板">主板</option>
+          <option value="电源">电源</option>
+          <option value="网卡">网卡</option>
+          <option value="交换机">交换机</option>
+        </select>
+      </div>
     </div>
-    <div class="col-4 ps-1 text-end">
-      <label class="form-label" for="portNo">端口：</label>
-      <input id="portNo" type="text" class="form-control" placeholder="">
+
+    <div id="switchInfoRow" class="row my-3 d-none">
+      <div class="col-8 pe-1">
+        <label class="form-label" for="switchLocation">交换机位置：</label>
+        <input id="switchLocation" type="text" class="form-control" placeholder="">
+      </div>
+      <div class="col-4 ps-1 text-end">
+        <label class="form-label" for="portNo">端口：</label>
+        <input id="portNo" type="text" class="form-control" placeholder="">
+      </div>
     </div>
-  </div>
 
-  <div id="serverSNRow" class="my-3">
-    <label class="form-label font-monospace" for="serverSN"><i class="bi bi-server px-1"></i>服务器SN：</label>
-    <input id="serverSN" type="text" class="form-control" placeholder="请扫码">
-  </div>
-
-  <div id="brandSection" class="row my-3 d-none">
-    <div class="col">
-      <label class="form-label text-danger fw-bold" for="newBrand">新件品牌：</label>
-      <select id="newBrand" class="form-select"><option value="请选择">请选择</option></select>
+    <div id="serverSNRow" class="my-3">
+      <label class="form-label font-monospace" for="serverSN"><i class="bi bi-server px-1"></i>服务器SN：</label>
+      <input id="serverSN" type="text" class="form-control" placeholder="请扫码">
     </div>
-    <div class="col text-end">
-      <label class="form-label text-dark fw-bold" for="oldBrand">旧件品牌：</label>
-      <select id="oldBrand" class="form-select"><option value="请选择">请选择</option></select>
+
+    <div id="brandSection" class="row my-3 d-none">
+      <div class="col">
+        <label class="form-label text-danger fw-bold" for="newBrand">新件品牌：</label>
+        <select id="newBrand" class="form-select"><option value="请选择">请选择</option></select>
+      </div>
+      <div class="col text-end">
+        <label class="form-label text-dark fw-bold" for="oldBrand">旧件品牌：</label>
+        <select id="oldBrand" class="form-select"><option value="请选择">请选择</option></select>
+      </div>
     </div>
-  </div>
 
-  <div class="form-group my-3">
-    <label class="form-label d-flex justify-content-between" for="newSN">
-      <span class="text-danger fw-bold">新件SN：</span><small id="countNewSN" class="text-muted">字符数：0</small>
-    </label>
-    <input id="newSN" type="text" class="form-control" placeholder="">
-  </div>
+    <div class="form-group my-3">
+      <label class="form-label d-flex justify-content-between" for="newSN">
+        <span class="text-danger fw-bold">新件SN：</span><small id="countNewSN" class="text-muted">字符数：0</small>
+      </label>
+      <input id="newSN" type="text" class="form-control" placeholder="">
+    </div>
 
-<div class="form-group my-3">
-  <label class="form-label d-flex justify-content-between" for="newPN">
-    <span class="text-danger fw-bold">新件PN：</span><span id="checkNewPN" class="text-success"></span><small id="countNewPN" class="text-muted">字符数：0</small>
-  </label>
-  <input id="newPN" list="newPnOptions" type="text" class="form-control" placeholder="" autocorrect="off">
-  <datalist id="newPnOptions"></datalist>
-</div>
+    <div class="form-group my-3">
+      <label class="form-label d-flex justify-content-between" for="newPN">
+        <span class="text-danger fw-bold">新件PN：</span><span id="checkNewPN" class="text-success"></span><small id="countNewPN" class="text-muted">字符数：0</small>
+      </label>
+      <input id="newPN" list="newPnOptions" type="text" class="form-control" placeholder="" autocorrect="off">
+      <datalist id="newPnOptions"></datalist>
+    </div>
 
-  <div class="form-group my-3">
-    <label class="form-label d-flex justify-content-between" for="oldSN">
-      <span class="text-dark fw-bold">旧件SN：</span><small id="countOldSN" class="text-muted">字符数：0</small>
-    </label>
-    <input id="oldSN" type="text" class="form-control" placeholder="">
-  </div>
+    <div class="form-group my-3">
+      <label class="form-label d-flex justify-content-between" for="oldSN">
+        <span class="text-dark fw-bold">旧件SN：</span><small id="countOldSN" class="text-muted">字符数：0</small>
+      </label>
+      <input id="oldSN" type="text" class="form-control" placeholder="">
+    </div>
 
-<div class="form-group my-3">
-  <label class="form-label d-flex justify-content-between" for="oldPN">
-    <span class="text-dark fw-bold">旧件PN：</span><span id="checkOldPN" class="text-success"></span><small id="countOldPN" class="text-muted">字符数：0</small>
-  </label>
-  <input id="oldPN" list="oldPnOptions" type="text" class="form-control" placeholder="" autocorrect="off">
-  <datalist id="oldPnOptions"></datalist>
-</div>
-  <div class="d-flex justify-content-between align-items-center my-4 pt-3">
-    <button id="resetBtn" class="btn btn-warning" onclick="resetForm()"><i class="bi bi-arrow-counterclockwise pe-1"></i>清空</button>
-    <button id="copyBtn" class="btn btn-danger"><i class="bi bi-copy pe-1"></i>复制</button>
-    <button class="btn btn-success" onclick="sendApplyNotify()"><i class="bi bi-megaphone-fill pe-1"></i>申领通知</button>
-    <button class="btn btn-primary" onclick="sendToFeishu()"><i class="bi bi-send pe-1"></i>替换通知</button>
+    <div class="form-group my-3">
+      <label class="form-label d-flex justify-content-between" for="oldPN">
+        <span class="text-dark fw-bold">旧件PN：</span><span id="checkOldPN" class="text-success"></span><small id="countOldPN" class="text-muted">字符数：0</small>
+      </label>
+      <input id="oldPN" list="oldPnOptions" type="text" class="form-control" placeholder="" autocorrect="off">
+      <datalist id="oldPnOptions"></datalist>
+    </div>
+    <div class="d-flex justify-content-between align-items-center my-4 pt-3">
+      <button id="resetBtn" class="btn btn-warning" onclick="resetForm()"><i class="bi bi-arrow-counterclockwise pe-1"></i>清空</button>
+      <button id="copyBtn" class="btn btn-danger"><i class="bi bi-copy pe-1"></i>复制</button>
+      <button class="btn btn-success" onclick="sendApplyNotify()"><i class="bi bi-megaphone-fill pe-1"></i>申领通知</button>
+      <button class="btn btn-primary" onclick="sendToFeishu()"><i class="bi bi-send pe-1"></i>替换通知</button>
+    </div>
+    <pre class="rounded"><code id="preview" class="language-plaintext"></code></pre>
   </div>
-  <pre class="rounded"><code id="preview" class="language-plaintext"></code></pre>
 
   <script crossorigin="anonymous" src="https://lib.baomitu.com/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
   <script crossorigin="anonymous" src="https://lib.baomitu.com/highlight.js/11.10.0/highlight.min.js"></script>
+  <script src="https://lf-package-cn.feishucdn.com/obj/feishu-static/lark/passport/qrcode/LarkSSOSDKWebQRCode-1.0.3.js"></script>
   <script>
   window.partsDataReady = false;
   (async function() {
@@ -143,8 +158,29 @@
       new bootstrap.Toast(toast).show();
     }
   })();
+
+  // 飞书二维码扫码登录集成
+  (function() {
+    var client_id = 'cli_a8be137e6579500b';
+    var redirect_uri = encodeURIComponent('https://pwa-pda.jsjs.net/');
+    var state = Math.random().toString(36).slice(2);
+    var goto = `https://passport.feishu.cn/suite/passport/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&state=${state}`;
+    var QRLoginObj = QRLogin({
+      id: "login_container",
+      goto: goto,
+      width: "300",
+      height: "300"
+    });
+    var handleMessage = function (event) {
+      if(QRLoginObj.matchOrigin(event.origin) && QRLoginObj.matchData(event.data)) {
+        var loginTmpCode = event.data.tmp_code;
+        window.location.href = `${goto}&tmp_code=${loginTmpCode}`;
+      }
+    };
+    window.addEventListener('message', handleMessage, false);
+  })();
   </script>
-  <script src="/pwa.js"></script>
+  <!-- <script src="/pwa.js"></script> -->
   <script src="/pda.js"></script>
 </body>
 
