@@ -126,53 +126,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 修改 loadFormData 函数
 async function loadFormData() {
-  console.log('开始加载表单数据');
-  await waitForData();
-  console.log('数据加载完成:', window.partsData);
-  
   restoring = true;
   try {
     // 1. 恢复类型
     const typeVal = localStorage.getItem('pda_type');
-    console.log('从 localStorage 读取类型:', typeVal);
     
     if (typeVal && typeVal !== "请选择") {
       typeSelect.value = typeVal;
-      console.log('设置类型:', typeVal);
       
       // 确保数据存在
       if (!window.partsData || !window.partsData.brandMap) {
-        console.error('partsData 或 brandMap 不存在');
         return;
       }
       
       // 确保当前类型在 brandMap 中存在
       if (!window.partsData.brandMap[typeVal]) {
-        console.error('当前类型在 brandMap 中不存在:', typeVal);
         return;
       }
       
       // 更新品牌下拉框
       updateBrandOptions();
-      console.log('品牌下拉框更新完成');
 
       // 2. 恢复品牌
       const newBrandVal = localStorage.getItem('pda_newBrand');
       const oldBrandVal = localStorage.getItem('pda_oldBrand');
-      console.log('从 localStorage 读取品牌值:', { newBrandVal, oldBrandVal });
 
       // 等待品牌下拉框选项生成
       function waitForBrandOptions() {
         if (newBrand.options.length > 0 && oldBrand.options.length > 0) {
-          console.log('品牌下拉框选项已生成');
           
           if (newBrandVal && newBrandVal !== "请选择") {
             newBrand.value = newBrandVal;
-            console.log('设置新品牌值:', newBrandVal);
           }
           if (oldBrandVal && oldBrandVal !== "请选择") {
             oldBrand.value = oldBrandVal;
-            console.log('设置旧品牌值:', oldBrandVal);
           }
           
           // 触发 change 事件
@@ -237,7 +224,6 @@ async function loadFormData() {
             update();
           }
         } else {
-          console.log('等待品牌下拉框选项生成...');
           setTimeout(waitForBrandOptions, 100);
         }
       }
@@ -245,12 +231,10 @@ async function loadFormData() {
       // 开始等待品牌下拉框选项生成
       waitForBrandOptions();
     } else {
-      console.log('没有保存的类型值');
       restoring = false;
       update();
     }
   } catch (e) {
-    console.error('加载表单数据出错:', e);
     restoring = false;
     update();
   }
