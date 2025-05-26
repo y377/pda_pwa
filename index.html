@@ -103,15 +103,7 @@
     <button class="btn btn-success" onclick="sendApplyNotify()"><i class="bi bi-megaphone-fill pe-1"></i>申领通知</button>
     <button class="btn btn-primary" onclick="sendToFeishu()"><i class="bi bi-send pe-1"></i>替换通知</button>
   </div>
-  <pre class="rounded"><code id="preview" class="language-plaintext">上新下旧：更换「   」</code></pre>
-
-  <div id="debugInfo" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); color: #fff; padding: 10px; font-size: 12px; max-height: 200px; overflow-y: auto; z-index: 9999; display: none;">
-    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-      <span>Service Worker 调试信息</span>
-      <button onclick="document.getElementById('debugInfo').style.display='none'" style="background: none; border: none; color: #fff; cursor: pointer;">×</button>
-    </div>
-    <div id="debugContent"></div>
-  </div>
+  <pre class="rounded"><code id="preview" class="language-plaintext"></code></pre>
 
   <script crossorigin="anonymous" src="https://lib.baomitu.com/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
   <script crossorigin="anonymous" src="https://lib.baomitu.com/highlight.js/11.10.0/highlight.min.js"></script>
@@ -146,45 +138,6 @@
   </script>
   <script src="/pwa.js"></script>
   <script src="/pda.js"></script>
-  <script>
-  window.addEventListener('load', function() {
-    const debug = document.createElement('div');
-    debug.style.position = 'fixed';
-    debug.style.bottom = '0';
-    debug.style.left = '0';
-    debug.style.background = 'rgba(0,0,0,0.7)';
-    debug.style.color = '#fff';
-    debug.style.zIndex = '99999';
-    debug.style.fontSize = '12px';
-    debug.style.padding = '8px';
-    debug.innerText = 'newBrand: ' + localStorage.getItem('pda_newBrand') + '\noldBrand: ' + localStorage.getItem('pda_oldBrand');
-    document.body.appendChild(debug);
-  });
-  </script>
-  <script>
-    // 监听 Service Worker 消息
-    navigator.serviceWorker.addEventListener('message', event => {
-      if (event.data.type === 'SW_DEBUG') {
-        const debugInfo = document.getElementById('debugInfo');
-        const debugContent = document.getElementById('debugContent');
-        
-        // 显示调试区域
-        debugInfo.style.display = 'block';
-        
-        // 添加新消息
-        const div = document.createElement('div');
-        div.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
-        div.style.padding = '5px 0';
-        div.textContent = `${event.data.data.timestamp} - ${event.data.type}: ${JSON.stringify(event.data.data.info)}`;
-        
-        // 保持最新的 50 条消息
-        debugContent.insertBefore(div, debugContent.firstChild);
-        while (debugContent.children.length > 50) {
-          debugContent.removeChild(debugContent.lastChild);
-        }
-      }
-    });
-  </script>
 </body>
 
 </html>
