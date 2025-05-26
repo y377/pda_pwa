@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   checkLogin();
 });
 
-// 页面加载时检查登录状态
+// 修改 checkLogin 函数
 function checkLogin() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
@@ -135,18 +135,36 @@ function checkLogin() {
     // 有 code 参数，说明是飞书登录回调
     handleFeishuCallback(code);
   } else if (!currentUser) {
-    // 未登录，跳转到飞书登录
-    redirectToFeishuLogin();
+    // 未登录，显示登录界面
+    showLoginUI();
+  } else {
+    // 已登录，显示主界面
+    showMainUI();
   }
 }
 
-// 处理飞书登录回调
+// 显示登录界面
+function showLoginUI() {
+  document.getElementById('loginContainer').classList.remove('d-none');
+  document.getElementById('mainContainer').classList.add('d-none');
+}
+
+// 显示主界面
+function showMainUI() {
+  document.getElementById('loginContainer').classList.add('d-none');
+  document.getElementById('mainContainer').classList.remove('d-none');
+}
+
+// 修改 handleFeishuCallback 函数
 async function handleFeishuCallback(code) {
   try {
-    const res = await fetch('https://test.jsjs.net/auth', {
+    const res = await fetch('https://login-pda.jsjs.net/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ 
+        code,
+        redirect_uri: 'https://pwa-pda.jsjs.net/'
+      })
     });
     const data = await res.json();
     if (data.code === 0) {
@@ -154,13 +172,19 @@ async function handleFeishuCallback(code) {
       // 清除 URL 中的 code 参数
       window.history.replaceState({}, '', '/');
       showToast(`欢迎，${currentUser.name}`, 'success');
+      // 显示主界面
+      showMainUI();
+    } else {
+      showToast('登录失败', 'danger');
+      showLoginUI();
     }
   } catch (error) {
     showToast('登录失败', 'danger');
+    showLoginUI();
   }
 }
 
-// 跳转到飞书登录
+// 修改 redirectToFeishuLogin 函数
 function redirectToFeishuLogin() {
   const appId = 'cli_a8be137e6579500b';
   const redirectUri = encodeURIComponent('https://pwa-pda.jsjs.net/');
