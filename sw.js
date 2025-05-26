@@ -1,22 +1,6 @@
 // 版本控制
 const VERSION = '2.2.2';
-const CACHE_NAME = `pda-cache-${VERSION}`;
-
-// 向页面发送调试信息
-function sendDebugInfo(type, info) {
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'SW_DEBUG',
-        data: {
-          type,
-          info,
-          timestamp: new Date().toISOString()
-        }
-      });
-    });
-  });
-}
+const CACHE_NAME = 'pda-cache'; // 不带版本号
 
 const urlsToCache = [
   '/index.html',
@@ -39,45 +23,27 @@ const urlsToCache = [
 
 // 安装事件
 self.addEventListener('install', event => {
-  sendDebugInfo('install', { version: VERSION });
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        sendDebugInfo('cache', { action: 'start' });
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        sendDebugInfo('cache', { action: 'complete' });
-        return self.skipWaiting();
-      })
+      .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
   );
 });
 
-// 激活事件
+// 激活事件：每次激活都清除所有旧缓存
 self.addEventListener('activate', event => {
-  sendDebugInfo('activate', { version: VERSION });
   event.waitUntil(
     caches.keys().then(cacheNames => {
-      sendDebugInfo('cleanup', { caches: cacheNames });
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            sendDebugInfo('cleanup', { action: 'delete', cache: cacheName });
-            return caches.delete(cacheName);
-          }
-        })
+        cacheNames.map(cacheName => caches.delete(cacheName))
       );
-    }).then(() => {
-      sendDebugInfo('activate', { action: 'claim' });
-      return self.clients.claim();
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
 // fetch 事件，只处理静态资源
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  sendDebugInfo('fetch', { path: url.pathname });
 
   // 对于 Cloudflare Worker 数据接口，cache-first
   if (url.hostname === 'pn.jsjs.net' && url.pathname === '/pn') {
@@ -97,41 +63,33 @@ self.addEventListener('fetch', event => {
 
   // 对于 HTML 和 JS 文件，使用 network-first 策略
   if (url.pathname.endsWith('.html') || url.pathname.endsWith('.js')) {
-    sendDebugInfo('fetch', { path: url.pathname, strategy: 'network-first' });
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          sendDebugInfo('fetch', { path: url.pathname, status: 'success' });
           const responseToCache = response.clone();
           caches.open(CACHE_NAME)
             .then(cache => {
-              sendDebugInfo('fetch', { path: url.pathname, action: 'cache-update' });
               cache.put(event.request, responseToCache);
             });
           return response;
         })
-        .catch(error => {
-          sendDebugInfo('fetch', { path: url.pathname, status: 'error', error: error.message });
+        .catch(() => {
           return caches.match(event.request);
         })
     );
   } else {
     // 对于其他静态资源，使用 cache-first 策略
-    sendDebugInfo('fetch', { path: url.pathname, strategy: 'cache-first' });
     event.respondWith(
       caches.match(event.request)
         .then(response => {
           if (response) {
-            sendDebugInfo('fetch', { path: url.pathname, status: 'cache-hit' });
             return response;
           }
-          sendDebugInfo('fetch', { path: url.pathname, status: 'cache-miss' });
           return fetch(event.request)
             .then(response => {
               const responseToCache = response.clone();
               caches.open(CACHE_NAME)
                 .then(cache => {
-                  sendDebugInfo('fetch', { path: url.pathname, action: 'cache-update' });
                   cache.put(event.request, responseToCache);
                 });
               return response;
@@ -143,9 +101,7 @@ self.addEventListener('fetch', event => {
 
 // 错误处理
 self.addEventListener('error', event => {
-  sendDebugInfo('error', { error: event.error.message });
 });
 
 self.addEventListener('unhandledrejection', event => {
-  sendDebugInfo('error', { rejection: event.reason });
 }); 
