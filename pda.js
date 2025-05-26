@@ -566,14 +566,12 @@ function sendToFeishu() {
     body: JSON.stringify({ feishuPost }),
   })
     .then(async (res) => {
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "网络错误");
+      const data = await res.json();
+      if (data.code === 0) {
+        showToast("已发送 ✅", "success");
+      } else {
+        showToast(`发送失败 ❌ (${data.msg || '未知错误'})`, 'danger');
       }
-      return res.json();
-    })
-    .then(() => {
-      showToast("已发送 ✅", "success");
     })
     .catch(() => {
       showToast("发送失败 ❌", "danger");
@@ -621,14 +619,12 @@ function sendApplyNotify() {
     }),
   })
   .then(async res => {
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(errText || '网络错误');
+    const data = await res.json();
+    if (data.code === 0) {
+      showToast('申领通知已发送 ✅', 'success');
+    } else {
+      showToast(`申领通知发送失败 ❌ (${data.msg || '未知错误'})`, 'danger');
     }
-    return res.json();
-  })
-  .then(data => {
-    showToast('申领通知已发送 ✅', 'success');
   })
   .catch(() => {
     showToast('申领通知发送失败 ❌', 'danger');
