@@ -28,6 +28,7 @@ const copyBtn = document.getElementById("copyBtn");
 const orderNoDisplay = document.getElementById("orderNoDisplay");
 
 let restoring = false;
+let currentUser = null;  // 存储当前登录用户信息
 
 orderNo.addEventListener("input", function () {
   const val = orderNo.value.trim();
@@ -122,7 +123,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (resetBtn) {
     resetBtn.onclick = resetForm;
   }
+  checkLogin();
 });
+
+// 页面加载时检查登录状态
+function checkLogin() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  
+  if (code) {
+    // 有 code 参数，说明是飞书登录回调
+    handleFeishuCallback(code);
+  } else if (!currentUser) {
+    // 未登录，跳转到飞书登录
+    redirectToFeishuLogin();
+  }
+}
+
+// 处理飞书登录回调
+async function handleFeishuCallback(code) {
+  try {
+    const res = await fetch('https://test.jsjs.net/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if (data.code === 0) {
+      currentUser = data.data;
+      // 清除 URL 中的 code 参数
+      window.history.replaceState({}, '', '/');
+      showToast(`欢迎，${currentUser.name}`, 'success');
+    }
+  } catch (error) {
+    showToast('登录失败', 'danger');
+  }
+}
+
+// 跳转到飞书登录
+function redirectToFeishuLogin() {
+  const appId = 'cli_a8be137e6579500b';
+  const redirectUri = encodeURIComponent('https://pwa-pda.jsjs.net/');
+  const url = `https://open.feishu.cn/open-apis/authen/v1/index?app_id=${appId}&redirect_uri=${redirectUri}`;
+  window.location.href = url;
+}
 
 // 修改 loadFormData 函数
 async function loadFormData() {
@@ -563,7 +607,10 @@ function sendToFeishu() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ feishuPost }),
+    body: JSON.stringify({ 
+      feishuPost,
+      sender: currentUser ? currentUser.name : '未知用户'
+    }),
   })
     .then(async (res) => {
       const data = await res.json();
@@ -615,7 +662,8 @@ function sendApplyNotify() {
       brand2,
       sn2,
       pn2,
-      partType: typeSelect.value
+      partType: typeSelect.value,
+      sender: currentUser ? currentUser.name : '未知用户'
     }),
   })
   .then(async res => {
