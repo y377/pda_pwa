@@ -1,5 +1,5 @@
 {
-  "name": "PDA配件更换助手",
+  "name": "PDA配件扫码助手",
   "short_name": "PDA助手",
   "description": "快速生成配件更换文本",
   "start_url": "/",
