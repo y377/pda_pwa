@@ -29,6 +29,7 @@ const orderNoDisplay = document.getElementById("orderNoDisplay");
 
 let restoring = false;
 let currentUser = null;  // 存储当前登录用户信息
+let justLoggedIn = false;
 
 orderNo.addEventListener("input", function () {
   const val = orderNo.value.trim();
@@ -36,18 +37,23 @@ orderNo.addEventListener("input", function () {
   orderNoDisplay.textContent = num ? `${num}` : ""; //单号识别：${num}
 });
 
-function showToast(msg, type = "primary") {
+function showToast(msg, type = "primary", delay = 2000) {
   const container = document.getElementById("toastContainer");
   const toast = document.createElement("div");
-  toast.className = `toast align-items-center text-bg-${type} border-0 show my-2`;
-  toast.role = "alert";
-  toast.innerHTML = `
-      <div class="d-flex">
-        <div class="toast-body">${msg}</div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-      </div>`;
+  toast.className = `toast text-bg-${type} border-0`;
+  toast.setAttribute("role", "alert");
+  toast.setAttribute("aria-live", "assertive");
+  toast.setAttribute("aria-atomic", "true");
+  toast.innerHTML = `<div class="toast-body">${msg}</div>`;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 1200);
+
+  const bsToast = new bootstrap.Toast(toast, {
+    animation: true,
+    autohide: true,
+    delay: delay
+  });
+  bsToast.show();
+  toast.addEventListener('hidden.bs.toast', () => toast.remove());
 }
 
 function updateBrandOptions() {
@@ -157,6 +163,9 @@ function showMainUI() {
 
 // 修改 handleFeishuCallback 函数
 async function handleFeishuCallback(code) {
+  if (justLoggedIn) return;
+  justLoggedIn = true;
+  setTimeout(() => { justLoggedIn = false; }, 3000);
   try {
     const res = await fetch('https://login-pda.jsjs.net/auth', {
       method: 'POST',
