@@ -164,10 +164,9 @@
     var client_id = 'cli_a8be137e6579500b';
     var redirect_uri = encodeURIComponent('https://pwa-pda.jsjs.net/');
     var state = Math.random().toString(36).slice(2);
-    var goto = `https://passport.feishu.cn/suite/passport/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&state=${state}`;
     var QRLoginObj = QRLogin({
       id: "login_container",
-      goto: goto,
+      goto: `https://passport.feishu.cn/suite/passport/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&state=${state}`,
       width: "300",
       height: "300"
     });
