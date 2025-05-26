@@ -37,7 +37,7 @@ orderNo.addEventListener("input", function () {
   orderNoDisplay.textContent = num ? `${num}` : ""; //单号识别：${num}
 });
 
-function showToast(msg, type = "primary", delay = 2000) {
+function showToast(msg, type = "primary", delay = 5000) {
   const container = document.getElementById("toastContainer");
   const toast = document.createElement("div");
   toast.className = `toast text-bg-${type} border-0`;
