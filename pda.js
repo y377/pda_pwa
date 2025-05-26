@@ -585,47 +585,54 @@ function sendApplyNotify() {
   const orderInput = orderNo.value.trim();
   const urlMatch = orderInput.match(/https?:\/\/[\S]+/);
   if (!urlMatch) {
-    showToast("请粘贴完整的单号链接", "warning");
+    showToast('请粘贴完整的单号链接', 'warning');
     return;
   }
   const orderUrl = urlMatch[0];
-  const orderNum = orderUrl.match(/(\d+)(?!.*\d)/)?.[0] || "";
+  const orderNum = orderUrl.match(/(\d+)(?!.*\d)/)?.[0] || '';
   if (!orderNum) {
-    showToast("链接中未找到单号数字", "warning");
+    showToast('链接中未找到单号数字', 'warning');
     return;
   }
   const brand2 = oldBrand.value.trim();
-  const pn2 = oldPN.value.trim();
   const sn2 = oldSN.value.trim();
-  if (!brand2 || !sn2 || !pn2) {
-    showToast("旧件品牌、旧件SN、旧件PN均为必填项", "warning");
+  const pn2 = (() => {
+    const select = document.getElementById('oldPNSelect');
+    if (select && select.style.display !== 'none') {
+      return select.value;
+    }
+    return oldPN.value.trim();
+  })();
+  if (!brand2 || brand2 === '请选择' || !sn2 || !pn2 || pn2 === '请选择硬盘PN') {
+    showToast('旧件品牌、旧件SN、旧件PN均为必填项', 'warning');
     return;
   }
-  fetch("https://test.jsjs.net", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  fetch('https://test.jsjs.net', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      type: "apply",
+      type: 'apply',
       orderNum,
       orderUrl,
       brand2,
       sn2,
       pn2,
+      partType: typeSelect.value
     }),
   })
-    .then(async (res) => {
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "网络错误");
-      }
-      return res.json();
-    })
-    .then(() => {
-      showToast("申领通知已发送 ✅", "success");
-    })
-    .catch(() => {
-      showToast("申领通知发送失败 ❌", "danger");
-    });
+  .then(async res => {
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText || '网络错误');
+    }
+    return res.json();
+  })
+  .then(data => {
+    showToast('申领通知已发送 ✅', 'success');
+  })
+  .catch(() => {
+    showToast('申领通知发送失败 ❌', 'danger');
+  });
 }
 
 // 获取PN值（兼容input和select）
