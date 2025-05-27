@@ -135,26 +135,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 修改 checkLogin 函数
 function checkLogin() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get('code');
-  
-  // 先检查 localStorage 中的登录状态
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  const userId = localStorage.getItem('userId');
-  const userName = localStorage.getItem('userName');
-  
-  if (isLoggedIn && userId && userName) {
-    // 已登录，显示主界面
-    currentUser = { id: userId, name: userName };
-    showMainUI();
-    return;
-  }
-  
-  if (code) {
-    // 有 code 参数，说明是飞书登录回调
-    handleFeishuCallback(code);
+  // 检查飞书 SDK 是否加载
+  if (typeof tt !== 'undefined' && tt.feishu) {
+    tt.feishu.auth.getUserInfo().then(user => {
+      if (user) {
+        currentUser = user;
+        showMainUI();
+      } else {
+        showLoginUI();
+      }
+    }).catch(() => {
+      showLoginUI();
+    });
   } else {
-    // 未登录，显示登录界面
     showLoginUI();
   }
 }
@@ -171,48 +164,23 @@ function showMainUI() {
   document.getElementById('mainContainer').classList.remove('d-none');
 }
 
-// 修改 handleFeishuCallback 函数
-async function handleFeishuCallback(code) {
-  if (justLoggedIn) return;
-  justLoggedIn = true;
-  setTimeout(() => { justLoggedIn = false; }, 3000);
-  try {
-    const res = await fetch('https://login-pda.jsjs.net/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        code,
-        redirect_uri: 'https://pwa-pda.jsjs.net/'
-      })
-    });
-    const data = await res.json();
-    if (data.code === 0) {
-      currentUser = data.data;
-      // 保存登录状态到 localStorage
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userId', data.data.id);
-      localStorage.setItem('userName', data.data.name);
-      // 清除 URL 中的 code 参数
-      window.history.replaceState({}, '', '/');
-      showToast(`欢迎，${currentUser.name}`, 'success');
-      // 显示主界面
-      showMainUI();
-    } else {
-      showToast('登录失败', 'danger');
-      showLoginUI();
-    }
-  } catch (error) {
-    showToast('登录失败', 'danger');
-    showLoginUI();
-  }
-}
-
 // 修改 redirectToFeishuLogin 函数
 function redirectToFeishuLogin() {
-  const appId = 'cli_a8be137e6579500b';
-  const redirectUri = encodeURIComponent('https://pwa-pda.jsjs.net/');
-  const url = `https://open.feishu.cn/open-apis/authen/v1/index?app_id=${appId}&redirect_uri=${redirectUri}`;
-  window.location.href = url;
+  if (typeof tt !== 'undefined' && tt.feishu) {
+    tt.feishu.auth.login({
+      success: (user) => {
+        currentUser = user;
+        showMainUI();
+        showToast(`欢迎，${user.name}`, 'success');
+      },
+      fail: (err) => {
+        showToast('登录失败', 'danger');
+        showLoginUI();
+      }
+    });
+  } else {
+    showToast('飞书 SDK 未加载', 'danger');
+  }
 }
 
 // 修改 loadFormData 函数
@@ -870,13 +838,20 @@ function handleLoginSuccess(userId, userName) {
 
 // 修改退出登录函数
 function logout() {
-  // 清除登录状态
-  localStorage.removeItem('isLoggedIn');
-  localStorage.removeItem('userId');
-  localStorage.removeItem('userName');
-  
-  // 显示登录界面
-  document.getElementById("mainContainer").classList.add("d-none");
-  document.getElementById("loginContainer").classList.remove("d-none");
-  showToast("已退出登录", "info");
+  if (typeof tt !== 'undefined' && tt.feishu) {
+    tt.feishu.auth.logout({
+      success: () => {
+        currentUser = null;
+        showLoginUI();
+        showToast('已退出登录', 'info');
+      },
+      fail: () => {
+        showToast('退出失败', 'danger');
+      }
+    });
+  } else {
+    currentUser = null;
+    showLoginUI();
+    showToast('已退出登录', 'info');
+  }
 }
