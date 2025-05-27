@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (resetBtn) {
     resetBtn.onclick = resetForm;
   }
+  // 检查登录状态
   checkLogin();
 });
 
@@ -137,15 +138,24 @@ function checkLogin() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
   
+  // 先检查 localStorage 中的登录状态
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const userId = localStorage.getItem('userId');
+  const userName = localStorage.getItem('userName');
+  
+  if (isLoggedIn && userId && userName) {
+    // 已登录，显示主界面
+    currentUser = { id: userId, name: userName };
+    showMainUI();
+    return;
+  }
+  
   if (code) {
     // 有 code 参数，说明是飞书登录回调
     handleFeishuCallback(code);
-  } else if (!currentUser) {
+  } else {
     // 未登录，显示登录界面
     showLoginUI();
-  } else {
-    // 已登录，显示主界面
-    showMainUI();
   }
 }
 
@@ -178,6 +188,10 @@ async function handleFeishuCallback(code) {
     const data = await res.json();
     if (data.code === 0) {
       currentUser = data.data;
+      // 保存登录状态到 localStorage
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userId', data.data.id);
+      localStorage.setItem('userName', data.data.name);
       // 清除 URL 中的 code 参数
       window.history.replaceState({}, '', '/');
       showToast(`欢迎，${currentUser.name}`, 'success');
