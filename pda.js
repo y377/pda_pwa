@@ -116,45 +116,71 @@ function waitForData() {
   });
 }
 
-// 修改页面加载事件
-// 先渲染品牌下拉，再绑定事件，最后恢复表单
-
-document.addEventListener('DOMContentLoaded', async () => {
-  await waitForData();
-  updateBrandOptions();
-  bindEvents();
-  loadFormData();
-  // 修复resetBtn绑定
-  const resetBtn = document.getElementById('resetBtn');
-  if (resetBtn) {
-    resetBtn.onclick = resetForm;
+// 添加显示/隐藏界面的函数
+function showMainUI() {
+  const loginContainer = document.getElementById('loginContainer');
+  const mainContainer = document.getElementById('mainContainer');
+  if (loginContainer && mainContainer) {
+    loginContainer.classList.add('d-none');
+    mainContainer.classList.remove('d-none');
   }
-  // 检查登录状态
-  checkLogin();
+}
+
+function showLoginUI() {
+  const loginContainer = document.getElementById('loginContainer');
+  const mainContainer = document.getElementById('mainContainer');
+  if (loginContainer && mainContainer) {
+    loginContainer.classList.remove('d-none');
+    mainContainer.classList.add('d-none');
+  }
+}
+
+// 修改页面加载事件
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await waitForData();
+    updateBrandOptions();
+    bindEvents();
+    loadFormData();
+    // 修复resetBtn绑定
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) {
+      resetBtn.onclick = resetForm;
+    }
+    // 检查登录状态
+    checkLogin();
+  } catch (error) {
+    console.error('初始化失败:', error);
+  }
 });
 
 // 修改 checkLogin 函数
 function checkLogin() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get('code');
-  
-  if (code) {
-    // 有 code 参数，说明是飞书登录回调
-    handleFeishuCallback(code);
-  } else {
-    // 检查 localStorage 中的登录状态
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    const userId = localStorage.getItem('userId');
-    const userName = localStorage.getItem('userName');
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
     
-    if (isLoggedIn && userId && userName) {
-      // 已登录，显示主界面
-      currentUser = { id: userId, name: userName };
-      showMainUI();
+    if (code) {
+      // 有 code 参数，说明是飞书登录回调
+      handleFeishuCallback(code);
     } else {
-      // 未登录，显示登录界面
-      showLoginUI();
+      // 检查 localStorage 中的登录状态
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      const userId = localStorage.getItem('userId');
+      const userName = localStorage.getItem('userName');
+      
+      if (isLoggedIn && userId && userName) {
+        // 已登录，显示主界面
+        currentUser = { id: userId, name: userName };
+        showMainUI();
+      } else {
+        // 未登录，显示登录界面
+        showLoginUI();
+      }
     }
+  } catch (error) {
+    console.error('检查登录状态失败:', error);
+    showLoginUI();
   }
 }
 
@@ -186,6 +212,7 @@ async function handleFeishuCallback(code) {
       showLoginUI();
     }
   } catch (error) {
+    console.error('登录失败:', error);
     showToast('登录失败', 'danger');
     showLoginUI();
   }
