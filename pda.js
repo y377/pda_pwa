@@ -125,28 +125,10 @@ function waitForData() {
 function showMainUI() {
   const loginContainer = document.getElementById('loginContainer');
   const mainContainer = document.getElementById('mainContainer');
-  const userInfo = document.getElementById('userInfo');
-  const userInfoDropdown = document.getElementById('userInfoDropdown');
   
   if (!loginContainer || !mainContainer) {
     console.error('未找到登录或主界面容器');
     return;
-  }
-
-  // 更新用户信息显示
-  if (currentUser) {
-    // 使用 open_id 或 user_id 作为用户标识
-    const userId = currentUser.open_id || currentUser.user_id || currentUser.id || '';
-    
-    // 更新按钮上的用户名
-    if (userInfo) {
-      userInfo.textContent = currentUser.name;
-    }
-    
-    // 更新下拉菜单中的用户信息
-    if (userInfoDropdown) {
-      userInfoDropdown.textContent = `${currentUser.name}${userId ? ` (${userId})` : ''}`;
-    }
   }
 
   loginContainer.classList.add('d-none');
@@ -196,9 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       preview: document.getElementById('preview'),
       copyBtn: document.getElementById('copyBtn'),
       orderNoDisplay: document.getElementById('orderNoDisplay'),
-      resetBtn: document.getElementById('resetBtn'),
-      userInfo: document.getElementById('userInfo'),  // 添加用户信息显示元素
-      userInfoDropdown: document.getElementById('userInfoDropdown')  // 添加用户信息下拉菜单
+      resetBtn: document.getElementById('resetBtn')
     };
 
     // 检查必要的元素是否存在
@@ -923,44 +903,4 @@ function resetForm() {
       });
     }
   }
-}
-
-// 在文件开头添加登录状态检查
-document.addEventListener("DOMContentLoaded", function () {
-  // 检查是否已登录
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  const userId = localStorage.getItem('userId');
-  const userName = localStorage.getItem('userName');
-  
-  if (isLoggedIn && userId && userName) {
-    // 如果已登录，直接显示主界面
-    document.getElementById("loginContainer").classList.add("d-none");
-    document.getElementById("mainContainer").classList.remove("d-none");
-    document.getElementById("userInfo").textContent = `${userName} (${userId})`;
-  }
-});
-
-// 修改登录成功后的处理
-function handleLoginSuccess(userId, userName) {
-  // 保存登录状态到 localStorage
-  localStorage.setItem('isLoggedIn', 'true');
-  localStorage.setItem('userId', userId);
-  localStorage.setItem('userName', userName);
-  
-  // 显示主界面
-  document.getElementById("loginContainer").classList.add("d-none");
-  document.getElementById("mainContainer").classList.remove("d-none");
-  document.getElementById("userInfo").textContent = `${userName} (${userId})`;
-  showToast("登录成功", "success");
-}
-
-// 修改退出登录函数
-function logout() {
-  // 清除登录状态
-  localStorage.removeItem('isLoggedIn');
-  localStorage.removeItem('userId');
-  localStorage.removeItem('userName');
-  currentUser = null;
-  showLoginUI();
-  showToast('已退出登录', 'info');
 }
