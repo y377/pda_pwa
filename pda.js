@@ -39,6 +39,11 @@ orderNo.addEventListener("input", function () {
 
 function showToast(msg, type = "primary", delay = 5000) {
   const container = document.getElementById("toastContainer");
+  if (!container) {
+    console.error('未找到提示框容器');
+    return;
+  }
+
   const toast = document.createElement("div");
   toast.className = `toast text-bg-${type} border-0`;
   toast.setAttribute("role", "alert");
@@ -120,37 +125,93 @@ function waitForData() {
 function showMainUI() {
   const loginContainer = document.getElementById('loginContainer');
   const mainContainer = document.getElementById('mainContainer');
-  if (loginContainer && mainContainer) {
-    loginContainer.classList.add('d-none');
-    mainContainer.classList.remove('d-none');
+  const userInfo = document.getElementById('userInfo');
+  
+  if (!loginContainer || !mainContainer) {
+    console.error('未找到登录或主界面容器');
+    return;
   }
+
+  // 更新用户信息显示
+  if (userInfo && currentUser) {
+    userInfo.textContent = `${currentUser.name} (${currentUser.id})`;
+  }
+
+  loginContainer.classList.add('d-none');
+  mainContainer.classList.remove('d-none');
 }
 
 function showLoginUI() {
   const loginContainer = document.getElementById('loginContainer');
   const mainContainer = document.getElementById('mainContainer');
-  if (loginContainer && mainContainer) {
-    loginContainer.classList.remove('d-none');
-    mainContainer.classList.add('d-none');
+  if (!loginContainer || !mainContainer) {
+    console.error('未找到登录或主界面容器');
+    return;
   }
+  loginContainer.classList.remove('d-none');
+  mainContainer.classList.add('d-none');
 }
 
 // 修改页面加载事件
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    // 等待数据加载
     await waitForData();
-    updateBrandOptions();
-    bindEvents();
-    loadFormData();
-    // 修复resetBtn绑定
-    const resetBtn = document.getElementById('resetBtn');
-    if (resetBtn) {
-      resetBtn.onclick = resetForm;
+    
+    // 初始化界面元素
+    const elements = {
+      orderNo: document.getElementById('orderNo'),
+      typeSelect: document.getElementById('type'),
+      switchLocation: document.getElementById('switchLocation'),
+      portNo: document.getElementById('portNo'),
+      serverSN: document.getElementById('serverSN'),
+      serverSNRow: document.getElementById('serverSNRow'),
+      switchInfoRow: document.getElementById('switchInfoRow'),
+      newBrand: document.getElementById('newBrand'),
+      oldBrand: document.getElementById('oldBrand'),
+      newPN: document.getElementById('newPN'),
+      oldPN: document.getElementById('oldPN'),
+      newSN: document.getElementById('newSN'),
+      oldSN: document.getElementById('oldSN'),
+      newPnOptions: document.getElementById('newPnOptions'),
+      oldPnOptions: document.getElementById('oldPnOptions'),
+      countNewPN: document.getElementById('countNewPN'),
+      countNewSN: document.getElementById('countNewSN'),
+      countOldPN: document.getElementById('countOldPN'),
+      countOldSN: document.getElementById('countOldSN'),
+      checkNewPN: document.getElementById('checkNewPN'),
+      checkOldPN: document.getElementById('checkOldPN'),
+      preview: document.getElementById('preview'),
+      copyBtn: document.getElementById('copyBtn'),
+      orderNoDisplay: document.getElementById('orderNoDisplay'),
+      resetBtn: document.getElementById('resetBtn'),
+      userInfo: document.getElementById('userInfo')  // 添加用户信息显示元素
+    };
+
+    // 检查必要的元素是否存在
+    if (!elements.orderNo || !elements.typeSelect) {
+      console.error('未找到必要的界面元素');
+      return;
     }
+
+    // 更新品牌选项
+    updateBrandOptions();
+    
+    // 绑定事件
+    bindEvents();
+    
+    // 加载表单数据
+    loadFormData();
+    
+    // 绑定重置按钮
+    if (elements.resetBtn) {
+      elements.resetBtn.onclick = resetForm;
+    }
+
     // 检查登录状态
     checkLogin();
   } catch (error) {
-    console.error('初始化失败:', error);
+    console.error('页面初始化失败:', error);
   }
 });
 
