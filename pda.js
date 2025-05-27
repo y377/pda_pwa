@@ -824,3 +824,45 @@ function resetForm() {
     }
   }
 }
+
+// 在文件开头添加登录状态检查
+document.addEventListener("DOMContentLoaded", function () {
+  // 检查是否已登录
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const userId = localStorage.getItem('userId');
+  const userName = localStorage.getItem('userName');
+  
+  if (isLoggedIn && userId && userName) {
+    // 如果已登录，直接显示主界面
+    document.getElementById("loginContainer").classList.add("d-none");
+    document.getElementById("mainContainer").classList.remove("d-none");
+    document.getElementById("userInfo").textContent = `${userName} (${userId})`;
+  }
+});
+
+// 修改登录成功后的处理
+function handleLoginSuccess(userId, userName) {
+  // 保存登录状态到 localStorage
+  localStorage.setItem('isLoggedIn', 'true');
+  localStorage.setItem('userId', userId);
+  localStorage.setItem('userName', userName);
+  
+  // 显示主界面
+  document.getElementById("loginContainer").classList.add("d-none");
+  document.getElementById("mainContainer").classList.remove("d-none");
+  document.getElementById("userInfo").textContent = `${userName} (${userId})`;
+  showToast("登录成功", "success");
+}
+
+// 修改退出登录函数
+function logout() {
+  // 清除登录状态
+  localStorage.removeItem('isLoggedIn');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userName');
+  
+  // 显示登录界面
+  document.getElementById("mainContainer").classList.add("d-none");
+  document.getElementById("loginContainer").classList.remove("d-none");
+  showToast("已退出登录", "info");
+}
