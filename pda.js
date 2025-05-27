@@ -121,11 +121,12 @@ function waitForData() {
   });
 }
 
-// 添加显示/隐藏界面的函数
+// 修改 showMainUI 函数
 function showMainUI() {
   const loginContainer = document.getElementById('loginContainer');
   const mainContainer = document.getElementById('mainContainer');
   const userInfo = document.getElementById('userInfo');
+  const userInfoDropdown = document.getElementById('userInfoDropdown');
   
   if (!loginContainer || !mainContainer) {
     console.error('未找到登录或主界面容器');
@@ -133,8 +134,19 @@ function showMainUI() {
   }
 
   // 更新用户信息显示
-  if (userInfo && currentUser) {
-    userInfo.textContent = `${currentUser.name} (${currentUser.id})`;
+  if (currentUser) {
+    // 使用 open_id 或 user_id 作为用户标识
+    const userId = currentUser.open_id || currentUser.user_id || currentUser.id || '';
+    
+    // 更新按钮上的用户名
+    if (userInfo) {
+      userInfo.textContent = currentUser.name;
+    }
+    
+    // 更新下拉菜单中的用户信息
+    if (userInfoDropdown) {
+      userInfoDropdown.textContent = `${currentUser.name}${userId ? ` (${userId})` : ''}`;
+    }
   }
 
   loginContainer.classList.add('d-none');
@@ -185,7 +197,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       copyBtn: document.getElementById('copyBtn'),
       orderNoDisplay: document.getElementById('orderNoDisplay'),
       resetBtn: document.getElementById('resetBtn'),
-      userInfo: document.getElementById('userInfo')  // 添加用户信息显示元素
+      userInfo: document.getElementById('userInfo'),  // 添加用户信息显示元素
+      userInfoDropdown: document.getElementById('userInfoDropdown')  // 添加用户信息下拉菜单
     };
 
     // 检查必要的元素是否存在
@@ -261,8 +274,8 @@ async function handleFeishuCallback(code) {
       currentUser = data.data;
       // 保存登录状态到 localStorage
       localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userId', data.data.id);
-      localStorage.setItem('userName', data.data.name);
+      localStorage.setItem('userId', currentUser.open_id || currentUser.user_id || currentUser.id || '');
+      localStorage.setItem('userName', currentUser.name);
       // 清除 URL 中的 code 参数
       window.history.replaceState({}, '', '/');
       showToast(`欢迎，${currentUser.name}`, 'success');
